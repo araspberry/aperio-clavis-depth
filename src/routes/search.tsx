@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { AppShell } from "@/components/aperio/AppShell";
 import { Search as SearchIcon, KeyRound } from "lucide-react";
 import { useAperio } from "@/lib/aperio-store";
@@ -89,7 +89,7 @@ export function SearchPage() {
               <p className="text-xs uppercase tracking-wider text-[var(--gold-deep)]">Clavis says</p>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-foreground/90">
-              {clavisAnswer(q, results.length)}
+              {linkifyRefs(clavisAnswer(q, results.length))}
             </p>
           </div>
         )}
@@ -154,4 +154,34 @@ function clavisAnswer(q: string, count: number) {
     return "Paul's theology of suffering treats it not as punishment but as participation — being conformed to Christ. See Romans 5, Romans 8, 2 Corinthians 1, and Philippians 3:10.";
   }
   return `Found ${count} passage${count === 1 ? "" : "s"} matching your search. Tap any verse to read it in context with full Clavis commentary.`;
+}
+
+// Match references like "John 3:16", "Romans 8", "1 Corinthians 13:4-7", "Philippians 3:10",
+// "2 Corinthians 1". Optional leading number for books like 1/2/3 John, Kings, etc.
+const REF_REGEX =
+  /\b((?:[123]\s+)?(?:[A-Z][a-z]+(?:\s[A-Z][a-z]+)?))\s+(\d+)(?::\d+(?:-\d+)?)?\b/g;
+
+function linkifyRefs(text: string): ReactNode {
+  const nodes: ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  REF_REGEX.lastIndex = 0;
+  while ((match = REF_REGEX.exec(text)) !== null) {
+    const [full, book, chapter] = match;
+    const start = match.index;
+    if (start > lastIndex) nodes.push(text.slice(lastIndex, start));
+    nodes.push(
+      <Link
+        key={`${start}-${full}`}
+        to="/read/$book/$chapter"
+        params={{ book, chapter }}
+        className="font-medium text-[var(--gold-deep)] underline decoration-[var(--gold)]/40 underline-offset-2 hover:decoration-[var(--gold)]"
+      >
+        {full}
+      </Link>,
+    );
+    lastIndex = start + full.length;
+  }
+  if (lastIndex < text.length) nodes.push(text.slice(lastIndex));
+  return nodes;
 }
