@@ -64,7 +64,7 @@ const defaultState: AppState = {
     denomination: "",
     reasons: [],
     journey: "",
-    translation: "ESV",
+    translation: "BSB",
     topics: [],
     dailyMinutes: 15,
     setDailyGoal: true,

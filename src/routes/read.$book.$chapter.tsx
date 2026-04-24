@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/aperio/AppShell";
 import { BOOKS } from "@/data/bible";
-import { fetchChapter } from "@/lib/bible-api";
+import { fetchChapter, FEATURED_TRANSLATIONS } from "@/lib/bible-api";
 import { bumpClavis, recordReading, toggleBookmark, useAperio } from "@/lib/aperio-store";
 import { ClavisDrawer } from "@/components/aperio/ClavisDrawer";
 import { ArrowLeft, ChevronLeft, ChevronRight, Bookmark, KeyRound, MoreVertical, Loader2 } from "lucide-react";
@@ -24,7 +24,11 @@ function ReaderPage() {
   const { book, chapter } = useParams({ from: "/read/$book/$chapter" });
   const ch = Number(chapter);
   const { bookmarks, profile } = useAperio();
-  const translation = profile.translation && /^[A-Za-z]+$/.test(profile.translation) ? profile.translation : "BSB";
+  // Map any legacy/unsupported translation (e.g. "ESV" from earlier versions) to BSB.
+  const supported = FEATURED_TRANSLATIONS.some((t) => t.id === profile.translation || t.shortName === profile.translation);
+  const translation = supported
+    ? (FEATURED_TRANSLATIONS.find((t) => t.shortName === profile.translation)?.id ?? profile.translation)
+    : "BSB";
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["chapter", translation, book, ch],
