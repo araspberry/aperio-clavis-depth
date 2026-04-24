@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/aperio/AppShell";
-import { BOOKS, getChapter } from "@/data/bible";
+import { BOOKS } from "@/data/bible";
+import { fetchChapter } from "@/lib/bible-api";
 import { bumpClavis, recordReading, toggleBookmark, useAperio } from "@/lib/aperio-store";
 import { ClavisDrawer } from "@/components/aperio/ClavisDrawer";
-import { ArrowLeft, ChevronLeft, ChevronRight, Bookmark, KeyRound, MoreVertical } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Bookmark, KeyRound, MoreVertical, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/read/$book/$chapter")({
   head: ({ params }) => ({
@@ -21,8 +23,15 @@ export const Route = createFileRoute("/read/$book/$chapter")({
 function ReaderPage() {
   const { book, chapter } = useParams({ from: "/read/$book/$chapter" });
   const ch = Number(chapter);
-  const data = useMemo(() => getChapter(book, ch), [book, ch]);
-  const { bookmarks } = useAperio();
+  const { bookmarks, profile } = useAperio();
+  const translation = profile.translation && /^[A-Za-z]+$/.test(profile.translation) ? profile.translation : "BSB";
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["chapter", translation, book, ch],
+    queryFn: ({ signal }) => fetchChapter(book, ch, translation, signal),
+    enabled: !!book && ch > 0,
+  });
+
   const [drawer, setDrawer] = useState<"closed" | "peek" | "split" | "full">("closed");
   const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
   const navigate = useNavigate();
@@ -44,6 +53,11 @@ function ReaderPage() {
     setDrawer((d) => (d === "closed" ? "split" : d));
   };
 
+  const passageText = data?.verses
+    .filter((v) => !selectedVerse || v.n === selectedVerse)
+    .map((v) => `${v.n} ${v.text}`)
+    .join(" ");
+
   return (
     <AppShell>
       <div className="relative mx-auto max-w-3xl">
@@ -54,6 +68,7 @@ function ReaderPage() {
           </Link>
           <p className="font-serif text-base">
             {book} <span className="text-[var(--gold-deep)]">{ch}</span>
+            {data && <span className="ml-2 text-[10px] uppercase tracking-wider text-muted-foreground">{data.translationName}</span>}
           </p>
           <button className="rounded-full p-2 hover:bg-secondary"><MoreVertical className="h-4 w-4" /></button>
         </header>
@@ -68,24 +83,43 @@ function ReaderPage() {
           <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Chapter {ch}</p>
           <h1 className="mt-2 font-serif text-3xl">{book}</h1>
 
-          <div className="scripture mt-8 text-[1.15rem] text-foreground/90">
-            {data.verses.map((v) => {
-              const ref = `${book} ${ch}:${v.n}`;
-              const isBookmarked = bookmarks.includes(ref);
-              const isSelected = selectedVerse === v.n;
-              return (
-                <span
-                  key={v.n}
-                  onClick={() => setSelectedVerse(isSelected ? null : v.n)}
-                  className={`cursor-pointer transition-colors ${isSelected ? "rounded-md bg-[var(--gold)]/15 px-1" : "hover:bg-[var(--gold)]/5"}`}
-                >
-                  <sup className="verse-num">{v.n}</sup>
-                  {v.text}{" "}
-                  {isBookmarked && <span className="text-xs text-[var(--gold-deep)]">★ </span>}
-                </span>
-              );
-            })}
-          </div>
+          {isLoading && (
+            <div className="mt-12 flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Loading {book} {ch}…
+            </div>
+          )}
+          {error && (
+            <div className="mt-8 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+              {(error as Error).message}
+            </div>
+          )}
+          {data && (
+            <div className="scripture mt-8 text-[1.15rem] text-foreground/90">
+              {data.verses.map((v) => {
+                const heading = data.headings.find((h) => h.afterVerse === v.n - 1);
+                const ref = `${book} ${ch}:${v.n}`;
+                const isBookmarked = bookmarks.includes(ref);
+                const isSelected = selectedVerse === v.n;
+                return (
+                  <span key={v.n}>
+                    {heading && (
+                      <span className="mb-2 mt-6 block font-serif text-sm uppercase tracking-[0.2em] text-[var(--gold-deep)]">
+                        {heading.text}
+                      </span>
+                    )}
+                    <span
+                      onClick={() => setSelectedVerse(isSelected ? null : v.n)}
+                      className={`cursor-pointer transition-colors ${isSelected ? "rounded-md bg-[var(--gold)]/15 px-1" : "hover:bg-[var(--gold)]/5"}`}
+                    >
+                      <sup className="verse-num">{v.n}</sup>
+                      {v.text}{" "}
+                      {isBookmarked && <span className="text-xs text-[var(--gold-deep)]">★ </span>}
+                    </span>
+                  </span>
+                );
+              })}
+            </div>
+          )}
 
           {selectedVerse !== null && (
             <div className="sticky bottom-32 z-10 mt-6 flex justify-center">
@@ -137,6 +171,7 @@ function ReaderPage() {
           book={book}
           chapter={ch}
           selectedVerse={selectedVerse}
+          passageText={passageText}
         />
       </div>
     </AppShell>
