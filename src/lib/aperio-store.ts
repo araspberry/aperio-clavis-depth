@@ -228,7 +228,8 @@ export function setProfile(patch: Partial<UserProfile>) {
   state = { ...state, profile: { ...state.profile, ...patch } };
   emit();
   if (state.userId) {
-    void supabase.from("profiles").update(profileToRow(patch) as never).eq("id", state.userId);
+    const row = { id: state.userId, ...profileToRow(patch) };
+    void supabase.from("profiles").upsert(row as never, { onConflict: "id" });
   }
 }
 
