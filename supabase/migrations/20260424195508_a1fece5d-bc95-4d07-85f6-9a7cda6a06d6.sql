@@ -1,0 +1,2 @@
+DELETE FROM auth.users WHERE id IN ('e857c6e6-3a2d-4ef2-b6d3-3526426ad0e7', '0eb7328f-de8d-4cd8-97fa-fa6709bfd089');
+DELETE FROM public.profiles WHERE id IN ('e857c6e6-3a2d-4ef2-b6d3-3526426ad0e7', '0eb7328f-de8d-4cd8-97fa-fa6709bfd089');
