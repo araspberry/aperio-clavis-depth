@@ -77,6 +77,20 @@ function AuthPage() {
     }
   };
 
+  const apple = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("apple", {
+        redirect_uri: window.location.origin + "/home",
+      });
+      if (result.error) throw result.error;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Apple sign-in failed");
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-navy text-[var(--cream)]">
       <div className="absolute inset-0 opacity-20 [background:radial-gradient(circle_at_70%_20%,oklch(0.78_0.13_78/.3),transparent_60%)]" />
@@ -99,6 +113,15 @@ function AuthPage() {
           >
             <GoogleIcon />
             Continue with Google
+          </button>
+
+          <button
+            onClick={apple}
+            disabled={busy}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm transition hover:border-white/30 disabled:opacity-50"
+          >
+            <AppleIcon />
+            Continue with Apple
           </button>
 
           <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-wider text-[var(--cream)]/40">
