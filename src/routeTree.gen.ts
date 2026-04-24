@@ -9,38 +9,168 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PrayerRouteImport } from './routes/prayer'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as HomeRouteImport } from './routes/home'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ReadIndexRouteImport } from './routes/read.index'
+import { Route as ReadBookChapterRouteImport } from './routes/read.$book.$chapter'
 
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrayerRoute = PrayerRouteImport.update({
+  id: '/prayer',
+  path: '/prayer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReadIndexRoute = ReadIndexRouteImport.update({
+  id: '/read/',
+  path: '/read/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReadBookChapterRoute = ReadBookChapterRouteImport.update({
+  id: '/read/$book/$chapter',
+  path: '/read/$book/$chapter',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/home': typeof HomeRoute
+  '/onboarding': typeof OnboardingRoute
+  '/prayer': typeof PrayerRoute
+  '/profile': typeof ProfileRoute
+  '/search': typeof SearchRoute
+  '/read/': typeof ReadIndexRoute
+  '/read/$book/$chapter': typeof ReadBookChapterRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/home': typeof HomeRoute
+  '/onboarding': typeof OnboardingRoute
+  '/prayer': typeof PrayerRoute
+  '/profile': typeof ProfileRoute
+  '/search': typeof SearchRoute
+  '/read': typeof ReadIndexRoute
+  '/read/$book/$chapter': typeof ReadBookChapterRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/home': typeof HomeRoute
+  '/onboarding': typeof OnboardingRoute
+  '/prayer': typeof PrayerRoute
+  '/profile': typeof ProfileRoute
+  '/search': typeof SearchRoute
+  '/read/': typeof ReadIndexRoute
+  '/read/$book/$chapter': typeof ReadBookChapterRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/home'
+    | '/onboarding'
+    | '/prayer'
+    | '/profile'
+    | '/search'
+    | '/read/'
+    | '/read/$book/$chapter'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/home'
+    | '/onboarding'
+    | '/prayer'
+    | '/profile'
+    | '/search'
+    | '/read'
+    | '/read/$book/$chapter'
+  id:
+    | '__root__'
+    | '/'
+    | '/home'
+    | '/onboarding'
+    | '/prayer'
+    | '/profile'
+    | '/search'
+    | '/read/'
+    | '/read/$book/$chapter'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HomeRoute: typeof HomeRoute
+  OnboardingRoute: typeof OnboardingRoute
+  PrayerRoute: typeof PrayerRoute
+  ProfileRoute: typeof ProfileRoute
+  SearchRoute: typeof SearchRoute
+  ReadIndexRoute: typeof ReadIndexRoute
+  ReadBookChapterRoute: typeof ReadBookChapterRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prayer': {
+      id: '/prayer'
+      path: '/prayer'
+      fullPath: '/prayer'
+      preLoaderRoute: typeof PrayerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +178,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/read/': {
+      id: '/read/'
+      path: '/read'
+      fullPath: '/read/'
+      preLoaderRoute: typeof ReadIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/read/$book/$chapter': {
+      id: '/read/$book/$chapter'
+      path: '/read/$book/$chapter'
+      fullPath: '/read/$book/$chapter'
+      preLoaderRoute: typeof ReadBookChapterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HomeRoute: HomeRoute,
+  OnboardingRoute: OnboardingRoute,
+  PrayerRoute: PrayerRoute,
+  ProfileRoute: ProfileRoute,
+  SearchRoute: SearchRoute,
+  ReadIndexRoute: ReadIndexRoute,
+  ReadBookChapterRoute: ReadBookChapterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
