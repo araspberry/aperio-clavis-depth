@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/aperio-logo.png";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Mail, KeyRound } from "lucide-react";
@@ -82,13 +81,9 @@ function AuthPage() {
     <div className="relative min-h-screen overflow-hidden bg-gradient-navy text-[var(--cream)]">
       <div className="absolute inset-0 opacity-20 [background:radial-gradient(circle_at_70%_20%,oklch(0.78_0.13_78/.3),transparent_60%)]" />
       <div className="relative z-10 mx-auto flex min-h-screen max-w-md flex-col px-6 py-8">
-        <div className="flex flex-col items-center gap-3 pt-8">
-          <img
-            src={logo}
-            alt="Aperio"
-            className="h-20 w-20 rounded-[20px] shadow-[0_16px_40px_-12px_rgba(0,0,0,0.6)]"
-          />
-          <span className="font-serif text-2xl tracking-wide text-[var(--cream)]">Aperio</span>
+        <div className="flex flex-col items-center gap-2 pt-8">
+          <span className="font-serif text-4xl tracking-wide text-[var(--cream)]">Aperio</span>
+          <div className="h-px w-12 bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent" />
         </div>
 
         <div className="flex flex-1 flex-col justify-center">
