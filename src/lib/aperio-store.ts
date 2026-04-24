@@ -174,7 +174,7 @@ async function loadAll(userId: string) {
   ]);
 
   const profile = profileRes.data ? rowToProfile(profileRes.data) : defaultState.profile;
-  const stats = profileRes.data ?? {};
+  const stats: any = profileRes.data ?? {};
   const notes: Record<string, string> = {};
   (notesRes.data ?? []).forEach((n: any) => { notes[n.reference] = n.content; });
 
@@ -228,7 +228,7 @@ export function setProfile(patch: Partial<UserProfile>) {
   state = { ...state, profile: { ...state.profile, ...patch } };
   emit();
   if (state.userId) {
-    void supabase.from("profiles").update(profileToRow(patch)).eq("id", state.userId);
+    void supabase.from("profiles").update(profileToRow(patch) as never).eq("id", state.userId);
   }
 }
 
@@ -268,7 +268,7 @@ export async function updatePrayer(id: string, patch: Partial<PrayerEntry>) {
   if (patch.forWhom !== undefined) row.for_whom = patch.forWhom;
   if (patch.answeredText !== undefined) row.answered_text = patch.answeredText;
   if (patch.answeredDate !== undefined) row.answered_date = patch.answeredDate;
-  await supabase.from("prayers").update(row).eq("id", id);
+  await supabase.from("prayers").update(row as never).eq("id", id);
 }
 
 export async function toggleBookmark(ref: string) {
