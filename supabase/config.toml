@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.strongs]
 verify_jwt = false
+
+[functions.clavis-search]
+verify_jwt = false

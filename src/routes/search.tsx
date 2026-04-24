@@ -1,41 +1,54 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AppShell } from "@/components/aperio/AppShell";
-import { Search as SearchIcon, KeyRound } from "lucide-react";
+import { Search as SearchIcon, KeyRound, Loader2 } from "lucide-react";
 import { useAperio } from "@/lib/aperio-store";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/search")({
   head: () => ({ meta: [{ title: "Search — Aperio" }] }),
   component: SearchPage,
 });
 
-const FILTERS = ["All", "Verses", "Topics", "Words", "Notes", "Prayers"] as const;
+const FILTERS = ["All", "Verses", "Notes", "Prayers"] as const;
 
-const VERSE_INDEX: { ref: string; text: string; book: string; chapter: number; tags: string[] }[] = [
-  { ref: "John 1:1", text: "In the beginning was the Word, and the Word was with God, and the Word was God.", book: "John", chapter: 1, tags: ["word","logos","beginning","creation"] },
-  { ref: "John 3:16", text: "For God so loved the world, that he gave his only Son...", book: "John", chapter: 3, tags: ["love","agape","salvation","gospel"] },
-  { ref: "Romans 8:1", text: "There is therefore now no condemnation for those who are in Christ Jesus.", book: "Romans", chapter: 8, tags: ["condemnation","grace","freedom"] },
-  { ref: "Romans 8:28", text: "And we know that for those who love God all things work together for good...", book: "Romans", chapter: 8, tags: ["good","providence","love","suffering"] },
-  { ref: "Romans 8:38-39", text: "Neither death nor life... will be able to separate us from the love of God in Christ Jesus.", book: "Romans", chapter: 8, tags: ["love","fear","hope","abandon"] },
-  { ref: "Psalms 23:1", text: "The LORD is my shepherd; I shall not want.", book: "Psalms", chapter: 23, tags: ["shepherd","provision","trust"] },
-  { ref: "Psalms 23:4", text: "Even though I walk through the valley of the shadow of death, I will fear no evil...", book: "Psalms", chapter: 23, tags: ["fear","death","comfort","hope"] },
-  { ref: "Philippians 4:6", text: "Do not be anxious about anything, but in everything by prayer...", book: "Philippians", chapter: 4, tags: ["anxiety","prayer","peace"] },
-  { ref: "Philippians 4:13", text: "I can do all things through him who strengthens me.", book: "Philippians", chapter: 4, tags: ["strength","perseverance"] },
-  { ref: "Genesis 1:1", text: "In the beginning, God created the heavens and the earth.", book: "Genesis", chapter: 1, tags: ["creation","beginning"] },
-];
+type Passage = { book: string; chapter: number; verse: string; ref: string; text: string; why: string };
+type ClavisResult = { answer: string; passages: Passage[] };
 
 export function SearchPage() {
   const { prayers, notes } = useAperio();
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
+  const [clavis, setClavis] = useState<ClavisResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const reqId = useRef(0);
 
-  const results = useMemo(() => {
-    if (!q.trim()) return [] as typeof VERSE_INDEX;
-    const needle = q.toLowerCase();
-    return VERSE_INDEX.filter(
-      (v) => v.text.toLowerCase().includes(needle) || v.tags.some((t) => t.includes(needle)) || v.ref.toLowerCase().includes(needle)
-    );
+  useEffect(() => {
+    const term = q.trim();
+    if (!term) { setClavis(null); setError(null); setLoading(false); return; }
+    const id = ++reqId.current;
+    setLoading(true);
+    setError(null);
+    const t = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("clavis-search", { body: { query: term } });
+        if (id !== reqId.current) return;
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        setClavis(data as ClavisResult);
+      } catch (e) {
+        if (id !== reqId.current) return;
+        setError(e instanceof Error ? e.message : "Clavis could not respond.");
+        setClavis(null);
+      } finally {
+        if (id === reqId.current) setLoading(false);
+      }
+    }, 450);
+    return () => clearTimeout(t);
   }, [q]);
+
+  const passages = clavis?.passages ?? [];
 
   const noteHits = useMemo(() =>
     !q.trim() ? [] : Object.entries(notes).filter(([_, v]) => v.toLowerCase().includes(q.toLowerCase())),
@@ -56,7 +69,7 @@ export function SearchPage() {
         <div className="mt-5 flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3">
           <SearchIcon className="h-4 w-4 text-[var(--gold-deep)]" />
           <input autoFocus value={q} onChange={(e) => setQ(e.target.value)}
-            placeholder="Search verses, words, themes, your notes..."
+            placeholder="Ask Clavis anything — themes, words, questions…"
             className="w-full bg-transparent text-sm focus:outline-none" />
         </div>
 
@@ -72,7 +85,7 @@ export function SearchPage() {
           <div className="mt-8">
             <p className="text-xs uppercase tracking-wider text-muted-foreground">Clavis recommends exploring</p>
             <div className="mt-3 grid gap-2">
-              {["The Hebrew concept of Shalom", "Paul's theology of suffering", "Prophecies fulfilled by Jesus"].map((s) => (
+              {["The Hebrew concept of Shalom", "Paul's theology of suffering", "Prophecies fulfilled by Jesus", "What does it mean to fear the Lord?", "The Greek word agapē"].map((s) => (
                 <button key={s} onClick={() => setQ(s)}
                   className="rounded-xl border border-border bg-card px-4 py-3 text-left text-sm hover:border-[var(--gold)]/40">
                   {s}
@@ -87,21 +100,31 @@ export function SearchPage() {
             <div className="flex items-center gap-2">
               <KeyRound className="h-4 w-4 text-[var(--gold-deep)]" />
               <p className="text-xs uppercase tracking-wider text-[var(--gold-deep)]">Clavis says</p>
+              {loading && <Loader2 className="ml-1 h-3 w-3 animate-spin text-[var(--gold-deep)]" />}
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-foreground/90">
-              {linkifyRefs(clavisAnswer(q, results.length))}
-            </p>
+            {loading && !clavis && (
+              <p className="mt-3 text-sm italic text-muted-foreground">Searching the Word…</p>
+            )}
+            {error && (
+              <p className="mt-3 text-sm text-destructive">{error}</p>
+            )}
+            {clavis && (
+              <p className="mt-3 text-sm leading-relaxed text-foreground/90">
+                {linkifyRefs(clavis.answer)}
+              </p>
+            )}
           </div>
         )}
 
-        {(filter === "All" || filter === "Verses" || filter === "Topics" || filter === "Words") && results.length > 0 && (
+        {(filter === "All" || filter === "Verses") && passages.length > 0 && (
           <section className="mt-6 space-y-3">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">{results.length} passage{results.length === 1 ? "" : "s"}</p>
-            {results.map((r) => (
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">{passages.length} passage{passages.length === 1 ? "" : "s"}</p>
+            {passages.map((r) => (
               <Link key={r.ref} to="/read/$book/$chapter" params={{ book: r.book, chapter: String(r.chapter) }}
                 className="block rounded-2xl border border-border border-l-4 border-l-[var(--gold)] bg-card p-4 hover:border-[var(--gold)]/50">
                 <p className="text-xs uppercase tracking-wider text-[var(--gold-deep)]">{r.ref}</p>
                 <p className="scripture mt-1 text-base text-foreground/90">"{r.text}"</p>
+                {r.why && <p className="mt-2 text-xs italic text-muted-foreground">{r.why}</p>}
               </Link>
             ))}
           </section>
@@ -131,33 +154,15 @@ export function SearchPage() {
           </section>
         )}
 
-        {showCl && results.length === 0 && noteHits.length === 0 && prayerHits.length === 0 && (
-          <p className="mt-6 text-sm text-muted-foreground">No exact matches yet. Try a theme or a Greek/Hebrew word.</p>
+        {showCl && !loading && !error && clavis && passages.length === 0 && noteHits.length === 0 && prayerHits.length === 0 && (
+          <p className="mt-6 text-sm text-muted-foreground">No passages found. Try rephrasing your question.</p>
         )}
       </div>
     </AppShell>
   );
 }
 
-function clavisAnswer(q: string, count: number) {
-  const lower = q.toLowerCase();
-  if (lower.includes("agape") || lower.includes("love")) {
-    return "In the New Testament, the English word 'love' translates three distinct Greek terms — agapē (G26, self-giving covenant love), phileo (G5368, friendship love), and storgē (familial affection). Agapē is the love of choice, not feeling — the love God shows toward us in Christ.";
-  }
-  if (lower.includes("shalom")) {
-    return "Shalom (שָׁלוֹם, H7965) is the Hebrew concept of complete wholeness — peace not as the absence of conflict but as the presence of every good thing. It is what creation looked like before the fall and what the kingdom of God restores.";
-  }
-  if (lower.includes("afraid") || lower.includes("fear") || lower.includes("anxious")) {
-    return "Scripture answers fear not by denying its weight but by turning the gaze. Psalm 23, Lamentations 3, Romans 8, and Philippians 4 all model the same movement — name what you fear, then look at the One who is larger than it.";
-  }
-  if (lower.includes("suffer")) {
-    return "Paul's theology of suffering treats it not as punishment but as participation — being conformed to Christ. See Romans 5, Romans 8, 2 Corinthians 1, and Philippians 3:10.";
-  }
-  return `Found ${count} passage${count === 1 ? "" : "s"} matching your search. Tap any verse to read it in context with full Clavis commentary.`;
-}
-
-// Match references like "John 3:16", "Romans 8", "1 Corinthians 13:4-7", "Philippians 3:10",
-// "2 Corinthians 1". Optional leading number for books like 1/2/3 John, Kings, etc.
+// Match references like "John 3:16", "Romans 8", "1 Corinthians 13:4-7"
 const REF_REGEX =
   /\b((?:[123]\s+)?(?:[A-Z][a-z]+(?:\s[A-Z][a-z]+)?))\s+(\d+)(?::\d+(?:-\d+)?)?\b/g;
 
