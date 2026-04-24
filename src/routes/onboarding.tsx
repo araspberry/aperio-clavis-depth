@@ -243,9 +243,9 @@ function Onboarding() {
 function Welcome({ onNext }: { onNext: () => void }) {
   return (
     <div className="text-center">
-      <div className="mb-12 flex justify-center"><AperioMark className="[&>span]:text-3xl [&>span]:text-[var(--cream)]" /></div>
       <h1 className="font-serif text-5xl leading-tight">Welcome to Aperio.</h1>
-      <p className="mt-4 font-serif text-xl italic text-[var(--gold-soft)]">Where the Word opens.</p>
+      <div className="mx-auto mt-5 h-px w-16 bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent" />
+      <p className="mt-5 font-serif text-xl italic text-[var(--gold-soft)]">Where the Word opens.</p>
       <p className="mx-auto mt-8 max-w-sm text-sm leading-relaxed text-[var(--cream)]/60">
         "In the beginning was the Word, and the Word was with God, and the Word was God."
         <br /><span className="text-xs">— John 1:1</span>
