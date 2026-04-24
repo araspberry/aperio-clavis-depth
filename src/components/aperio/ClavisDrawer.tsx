@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, X, BookOpen, Languages, Link2, ScrollText, NotebookPen } from "lucide-react";
-import { getCommentary, toneIntro } from "@/data/clavis";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronDown, ChevronUp, X, BookOpen, Languages, Link2, ScrollText, NotebookPen, Loader2, Sparkles } from "lucide-react";
+import { getCommentary, toneIntro, type ClavisCommentary } from "@/data/clavis";
 import { setNote, useAperio } from "@/lib/aperio-store";
+import { supabase } from "@/integrations/supabase/client";
 
 type DrawerState = "closed" | "peek" | "split" | "full";
 
@@ -28,16 +30,45 @@ export function ClavisDrawer({
   book,
   chapter,
   selectedVerse,
+  passageText,
 }: {
   state: DrawerState;
   setState: (s: DrawerState) => void;
   book: string;
   chapter: number;
   selectedVerse: number | null;
+  passageText?: string;
 }) {
   const { profile, notes } = useAperio();
   const [tab, setTab] = useState<TabId>("commentary");
-  const commentary = getCommentary(book, chapter);
+  const fallback = getCommentary(book, chapter);
+
+  const enabled = state !== "closed";
+  const aiQuery = useQuery({
+    queryKey: ["clavis", book, chapter, selectedVerse, profile.clavisTone],
+    enabled,
+    staleTime: 1000 * 60 * 60 * 24,
+    gcTime: 1000 * 60 * 60 * 24 * 7,
+    retry: 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("clavis", {
+        body: {
+          book,
+          chapter,
+          verse: selectedVerse ?? undefined,
+          tone: profile.clavisTone,
+          passageText,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data.commentary as ClavisCommentary;
+    },
+  });
+
+  const commentary: ClavisCommentary = aiQuery.data ?? fallback;
+  const isAI = !!aiQuery.data;
+
   const noteKey = `${book} ${chapter}${selectedVerse ? `:${selectedVerse}` : ""}`;
   const [draftNote, setDraftNote] = useState(notes[noteKey] ?? "");
 
@@ -87,6 +118,7 @@ export function ClavisDrawer({
               <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--gold-soft)]/80">{toneIntro(profile.clavisTone)}</span>
               <span className="text-[10px] text-white/40">·</span>
               <span className="text-[10px] text-white/60">{book} {chapter}{selectedVerse ? `:${selectedVerse}` : ""}</span>
+              {isAI && <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-[var(--gold)]/15 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-[var(--gold-soft)]"><Sparkles className="h-2.5 w-2.5" />Live</span>}
             </div>
             <div className="flex items-center gap-1">
               <button onClick={cycleDown} className="rounded-full p-1.5 hover:bg-white/10"><ChevronDown className="h-4 w-4" /></button>
@@ -117,6 +149,16 @@ export function ClavisDrawer({
 
           {/* Content */}
           <div className="overflow-y-auto px-5 py-5" style={{ height: `calc(${HEIGHTS[state]} - 7rem)` }}>
+            {aiQuery.isLoading && (
+              <div className="mb-4 flex items-center gap-2 text-xs text-white/60">
+                <Loader2 className="h-3 w-3 animate-spin" /> Clavis is opening this passage…
+              </div>
+            )}
+            {aiQuery.error && (
+              <div className="mb-4 rounded-lg border border-amber-400/30 bg-amber-400/10 p-3 text-xs text-amber-100">
+                {(aiQuery.error as Error).message || "Clavis couldn't reach the AI just now. Showing offline notes."}
+              </div>
+            )}
             {tab === "commentary" && (
               <div className="space-y-5">
                 <Section title="Overview">{commentary.overview}</Section>
