@@ -1,26 +1,38 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { AperioMark } from "@/components/aperio/AperioMark";
+import { useAperio } from "@/lib/aperio-store";
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  component: Splash,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function Splash() {
+  const { profile } = useAperio();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      navigate({ to: profile.onboarded ? "/home" : "/onboarding" });
+    }, 1400);
+    return () => clearTimeout(t);
+  }, [profile.onboarded, navigate]);
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-navy">
+      <div className="absolute inset-0 opacity-30 [background:radial-gradient(circle_at_50%_30%,oklch(0.78_0.13_78/.35),transparent_55%)]" />
+      <div className="relative z-10 flex flex-col items-center gap-6 text-center">
+        <div className="animate-[pulse_3s_ease-in-out_infinite]">
+          <AperioMark className="[&>span]:text-[var(--cream)] [&>span]:text-3xl" />
+        </div>
+        <p className="font-serif text-base italic text-[var(--gold-soft)]">
+          Where the Word opens.
+        </p>
+        <Link to="/onboarding" className="mt-6 text-xs uppercase tracking-[0.3em] text-[var(--gold-soft)]/70 hover:text-[var(--gold)]">
+          Begin →
+        </Link>
+      </div>
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }
