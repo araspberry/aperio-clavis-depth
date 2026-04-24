@@ -66,6 +66,10 @@ export async function fetchChapter(
   if (!res.ok) {
     throw new Error(`Could not load ${book} ${chapter} (${res.status}). The translation may not contain this book.`);
   }
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(`Translation "${translation}" doesn't appear to support ${book} ${chapter}. Try a different translation.`);
+  }
   const data = await res.json();
 
   const verses: ApiVerse[] = [];
