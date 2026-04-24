@@ -9,15 +9,17 @@ export const Route = createFileRoute("/")({
 });
 
 function Splash() {
-  const { profile } = useAperio();
+  const { profile, userId, loading } = useAperio();
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (loading) return;
     const t = setTimeout(() => {
-      navigate({ to: profile.onboarded ? "/home" : "/onboarding" });
+      if (!userId) navigate({ to: "/auth" });
+      else navigate({ to: profile.onboarded ? "/home" : "/onboarding" });
     }, 1400);
     return () => clearTimeout(t);
-  }, [profile.onboarded, navigate]);
+  }, [loading, userId, profile.onboarded, navigate]);
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-navy">
@@ -29,7 +31,7 @@ function Splash() {
         <p className="font-serif text-base italic text-[var(--gold-soft)]">
           Where the Word opens.
         </p>
-        <Link to="/onboarding" className="mt-6 text-xs uppercase tracking-[0.3em] text-[var(--gold-soft)]/70 hover:text-[var(--gold)]">
+        <Link to="/auth" className="mt-6 text-xs uppercase tracking-[0.3em] text-[var(--gold-soft)]/70 hover:text-[var(--gold)]">
           Begin →
         </Link>
       </div>

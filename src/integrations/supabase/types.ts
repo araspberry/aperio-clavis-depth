@@ -14,7 +14,192 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookmarks: {
+        Row: {
+          created_at: string
+          id: string
+          reference: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reference: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reference?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          reference: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          reference: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          reference?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      prayers: {
+        Row: {
+          answered_date: string | null
+          answered_text: string | null
+          category: string
+          created_at: string
+          for_whom: string | null
+          id: string
+          scripture: string | null
+          status: string
+          text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answered_date?: string | null
+          answered_text?: string | null
+          category?: string
+          created_at?: string
+          for_whom?: string | null
+          id?: string
+          scripture?: string | null
+          status?: string
+          text: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answered_date?: string | null
+          answered_text?: string | null
+          category?: string
+          created_at?: string
+          for_whom?: string | null
+          id?: string
+          scripture?: string | null
+          status?: string
+          text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          city: string | null
+          clavis_sessions: number | null
+          clavis_tone: string | null
+          country: string | null
+          created_at: string
+          daily_minutes: number | null
+          denomination: string | null
+          dob: string | null
+          first_name: string | null
+          gender: string | null
+          id: string
+          journey: string | null
+          last_name: string | null
+          last_read_book: string | null
+          last_read_chapter: number | null
+          last_read_date: string | null
+          longest_streak: number | null
+          member_since: string
+          minutes_today: number | null
+          onboarded: boolean | null
+          profession: string | null
+          reasons: string[] | null
+          set_daily_goal: boolean | null
+          state: string | null
+          streak: number | null
+          topics: string[] | null
+          total_days: number | null
+          translation: string | null
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          clavis_sessions?: number | null
+          clavis_tone?: string | null
+          country?: string | null
+          created_at?: string
+          daily_minutes?: number | null
+          denomination?: string | null
+          dob?: string | null
+          first_name?: string | null
+          gender?: string | null
+          id: string
+          journey?: string | null
+          last_name?: string | null
+          last_read_book?: string | null
+          last_read_chapter?: number | null
+          last_read_date?: string | null
+          longest_streak?: number | null
+          member_since?: string
+          minutes_today?: number | null
+          onboarded?: boolean | null
+          profession?: string | null
+          reasons?: string[] | null
+          set_daily_goal?: boolean | null
+          state?: string | null
+          streak?: number | null
+          topics?: string[] | null
+          total_days?: number | null
+          translation?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          clavis_sessions?: number | null
+          clavis_tone?: string | null
+          country?: string | null
+          created_at?: string
+          daily_minutes?: number | null
+          denomination?: string | null
+          dob?: string | null
+          first_name?: string | null
+          gender?: string | null
+          id?: string
+          journey?: string | null
+          last_name?: string | null
+          last_read_book?: string | null
+          last_read_chapter?: number | null
+          last_read_date?: string | null
+          longest_streak?: number | null
+          member_since?: string
+          minutes_today?: number | null
+          onboarded?: boolean | null
+          profession?: string | null
+          reasons?: string[] | null
+          set_daily_goal?: boolean | null
+          state?: string | null
+          streak?: number | null
+          topics?: string[] | null
+          total_days?: number | null
+          translation?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

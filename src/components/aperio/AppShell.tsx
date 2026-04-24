@@ -4,18 +4,27 @@ import { useAperio } from "@/lib/aperio-store";
 import { BottomNav } from "./BottomNav";
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { profile } = useAperio();
+  const { profile, userId, loading } = useAperio();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (profile.firstName === "" && !profile.onboarded) {
-      // give hydration a tick
-      const t = setTimeout(() => {
-        if (!profile.onboarded) navigate({ to: "/onboarding" });
-      }, 50);
-      return () => clearTimeout(t);
+    if (loading) return;
+    if (!userId) {
+      navigate({ to: "/auth" });
+      return;
     }
-  }, [profile.onboarded, profile.firstName, navigate]);
+    if (!profile.onboarded) {
+      navigate({ to: "/onboarding" });
+    }
+  }, [loading, userId, profile.onboarded, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-2 w-2 animate-pulse rounded-full bg-[var(--gold)]" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-24">

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AperioMark } from "@/components/aperio/AperioMark";
 import { setProfile, useAperio } from "@/lib/aperio-store";
 import { Button } from "@/components/ui/button";
@@ -15,10 +15,18 @@ export const Route = createFileRoute("/onboarding")({
 const TOTAL = 14; // 0..13
 
 function Onboarding() {
-  const { profile } = useAperio();
+  const { profile, userId, loading } = useAperio();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState({ ...profile });
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !userId) navigate({ to: "/auth" });
+  }, [loading, userId, navigate]);
+
+  useEffect(() => {
+    setDraft({ ...profile });
+  }, [profile]);
 
   const next = () => setStep((s) => Math.min(TOTAL - 1, s + 1));
   const back = () => setStep((s) => Math.max(0, s - 1));

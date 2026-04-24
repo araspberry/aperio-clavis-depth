@@ -6,6 +6,7 @@ import { BOOKS } from "@/data/bible";
 import { fetchChapter, FEATURED_TRANSLATIONS } from "@/lib/bible-api";
 import { bumpClavis, recordReading, toggleBookmark, useAperio } from "@/lib/aperio-store";
 import { ClavisDrawer } from "@/components/aperio/ClavisDrawer";
+import { StrongsVerse } from "@/components/aperio/StrongsVerse";
 import { ArrowLeft, ChevronLeft, ChevronRight, Bookmark, KeyRound, MoreVertical, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/read/$book/$chapter")({
@@ -38,6 +39,7 @@ function ReaderPage() {
 
   const [drawer, setDrawer] = useState<"closed" | "peek" | "split" | "full">("closed");
   const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
+  const [strongsVerse, setStrongsVerse] = useState<number | null>(null);
   const navigate = useNavigate();
   const startedRef = useRef(false);
 
@@ -132,12 +134,22 @@ function ReaderPage() {
                   onClick={() => toggleBookmark(`${book} ${ch}:${selectedVerse}`)}
                   className="rounded-full p-2 hover:bg-secondary" title="Bookmark"
                 ><Bookmark className="h-4 w-4" /></button>
+                <button
+                  onClick={() => setStrongsVerse(strongsVerse === selectedVerse ? null : selectedVerse)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${strongsVerse === selectedVerse ? "bg-[var(--gold)]/20 text-[var(--gold-deep)]" : "hover:bg-secondary"}`}
+                  title="Show Strong's tags"
+                >Στ/א</button>
                 <button onClick={() => openClavis(selectedVerse)} className="inline-flex items-center gap-1.5 rounded-full bg-gradient-gold px-3 py-1.5 text-xs font-semibold text-[var(--navy-deep)]">
                   <KeyRound className="h-3.5 w-3.5" /> Clavis on v.{selectedVerse}
                 </button>
               </div>
             </div>
           )}
+
+          {strongsVerse !== null && data && (() => {
+            const v = data.verses.find((x) => x.n === strongsVerse);
+            return v ? <StrongsVerse book={book} chapter={ch} verse={v.n} text={v.text} /> : null;
+          })()}
 
           {/* Chapter nav */}
           <div className="mt-12 flex items-center justify-between border-t border-border pt-5">
