@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { AppShell } from "@/components/aperio/AppShell";
 import { Search as SearchIcon, KeyRound } from "lucide-react";
 import { useAperio } from "@/lib/aperio-store";
@@ -89,7 +89,7 @@ export function SearchPage() {
               <p className="text-xs uppercase tracking-wider text-[var(--gold-deep)]">Clavis says</p>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-foreground/90">
-              {clavisAnswer(q, results.length)}
+              {linkifyRefs(clavisAnswer(q, results.length))}
             </p>
           </div>
         )}
