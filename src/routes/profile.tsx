@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/aperio/AppShell";
-import { resetAll, useAperio } from "@/lib/aperio-store";
-import { Sparkles } from "lucide-react";
+import { resetAll, signOut, useAperio } from "@/lib/aperio-store";
+import { Sparkles, LogOut } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile — Aperio" }] }),
@@ -128,9 +128,15 @@ function ProfilePage() {
         </section>
 
         <button
-          onClick={() => { if (confirm("Reset all Aperio data?")) { resetAll(); navigate({ to: "/onboarding" }); } }}
+          onClick={() => { if (confirm("Reset all Aperio data?")) { void resetAll().then(() => navigate({ to: "/onboarding" })); } }}
           className="mt-6 w-full rounded-xl border border-border py-3 text-xs text-muted-foreground hover:text-destructive">
           Reset Aperio data
+        </button>
+
+        <button
+          onClick={async () => { await signOut(); navigate({ to: "/auth" }); }}
+          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-xs text-muted-foreground hover:text-foreground">
+          <LogOut className="h-3.5 w-3.5" /> Sign out
         </button>
       </div>
     </AppShell>
