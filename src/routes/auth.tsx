@@ -77,8 +77,9 @@ function AuthPage() {
       // rather than navigating the webview. Open it via Capacitor Browser
       // so the OS handles the OAuth handoff and our deep-link listener
       // catches the callback.
-      if (native && result.redirected && (result as { url?: string }).url) {
-        await openNativeAuthUrl((result as { url: string }).url);
+      const maybeUrl = (result as unknown as { url?: string }).url;
+      if (native && result.redirected && maybeUrl) {
+        await openNativeAuthUrl(maybeUrl);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : `${provider} sign-in failed`);
