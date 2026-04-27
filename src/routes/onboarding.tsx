@@ -18,6 +18,8 @@ function Onboarding() {
   const { profile, userId, loading } = useAperio();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState({ ...profile });
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,9 +32,17 @@ function Onboarding() {
 
   const next = () => setStep((s) => Math.min(TOTAL - 1, s + 1));
   const back = () => setStep((s) => Math.max(0, s - 1));
-  const finish = () => {
-    setProfile({ ...draft, onboarded: true, memberSince: new Date().toISOString() });
-    navigate({ to: "/home" });
+  const finish = async () => {
+    setSaveError(null);
+    setSaving(true);
+    try {
+      await setProfile({ ...draft, onboarded: true, memberSince: new Date().toISOString() });
+      navigate({ to: "/home" });
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Onboarding could not be saved.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const update = (p: Partial<typeof draft>) => setDraft((d) => ({ ...d, ...p }));
@@ -219,12 +229,17 @@ function Onboarding() {
               <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
           ) : (
-            <Button onClick={finish} className="rounded-full bg-gradient-gold px-7 py-5 text-[var(--navy-deep)] hover:opacity-90 shadow-gold ml-auto">
-              Enter Aperio
+            <Button onClick={finish} disabled={saving} className="rounded-full bg-gradient-gold px-7 py-5 text-[var(--navy-deep)] hover:opacity-90 shadow-gold ml-auto disabled:opacity-60">
+              {saving ? "Saving…" : "Enter Aperio"}
               <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
           )}
         </div>
+        {saveError && (
+          <p className="mt-4 rounded-xl border border-red-400/30 bg-red-400/10 p-3 text-sm text-red-100">
+            {saveError}
+          </p>
+        )}
       </div>
 
       <style>{`

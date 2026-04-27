@@ -224,12 +224,31 @@ export function setState(patch: Partial<AppState> | ((s: AppState) => Partial<Ap
   emit();
 }
 
-export function setProfile(patch: Partial<UserProfile>) {
+export async function setProfile(patch: Partial<UserProfile>) {
   state = { ...state, profile: { ...state.profile, ...patch } };
   emit();
-  if (state.userId) {
-    const row = { id: state.userId, ...profileToRow(patch) };
-    void supabase.from("profiles").upsert(row as never, { onConflict: "id" });
+
+  let userId = state.userId;
+  if (!userId) {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    userId = session?.user?.id ?? null;
+    if (userId) setStateInternal({ userId });
+  }
+
+  if (!userId) throw new Error("You need to be signed in to save onboarding.");
+
+  const row = { id: userId, ...profileToRow(patch) };
+  const { data, error } = await supabase
+    .from("profiles")
+    .upsert(row as never, { onConflict: "id" })
+    .select("*")
+    .maybeSingle();
+
+  if (error) throw error;
+  if (data) {
+    state = { ...state, profile: rowToProfile(data) };
+    emit();
   }
 }
 
