@@ -3,7 +3,9 @@ import { AppShell } from "@/components/aperio/AppShell";
 import { AperioMark } from "@/components/aperio/AperioMark";
 import { useAperio } from "@/lib/aperio-store";
 import { SCRIPTURE_OF_DAY } from "@/data/bible";
-import { Bell, Settings, Share2, KeyRound, BookOpen, Sparkles, Cross, Scroll, Music } from "lucide-react";
+import { Bell, Settings, Share2, KeyRound, BookOpen, Sparkles, Cross, Scroll } from "lucide-react";
+import { Icon as LucideIcon } from "lucide-react";
+import { sheep } from "@lucide/lab";
 
 export const Route = createFileRoute("/home")({
   head: () => ({
@@ -122,7 +124,7 @@ function HomePage() {
           <div className="mt-3 grid gap-3">
             <PlanCard title="The Gospel of John" desc="A 21-day journey through John, with Clavis unlocking every chapter." book="John" chapter={1} Icon={Cross} />
             <PlanCard title="Romans — A Deep Dive" desc="Paul's theological masterpiece, verse by verse." book="Romans" chapter={8} Icon={Scroll} />
-            <PlanCard title="30 Days in the Psalms" desc="Hebrew poetry, prayer, and the heart of God." book="Psalms" chapter={23} Icon={Music} />
+            <PlanCard title="30 Days in the Psalms" desc="Hebrew poetry, prayer, and the heart of God." book="Psalms" chapter={23} Icon={SheepIcon} />
           </div>
         </section>
       </div>
@@ -143,4 +145,8 @@ function PlanCard({ title, desc, book, chapter, Icon }: { title: string; desc: s
       </div>
     </Link>
   );
+}
+
+function SheepIcon({ className }: { className?: string }) {
+  return <LucideIcon iconNode={sheep} className={className} />;
 }
