@@ -4,8 +4,6 @@ import { AperioMark } from "@/components/aperio/AperioMark";
 import { useAperio } from "@/lib/aperio-store";
 import { SCRIPTURE_OF_DAY } from "@/data/bible";
 import { Bell, Settings, Share2, KeyRound, BookOpen, Sparkles, Cross, Scroll } from "lucide-react";
-import { Icon as LucideIcon } from "lucide-react";
-import { sheep } from "@lucide/lab";
 
 export const Route = createFileRoute("/home")({
   head: () => ({
@@ -148,5 +146,26 @@ function PlanCard({ title, desc, book, chapter, Icon }: { title: string; desc: s
 }
 
 function SheepIcon({ className }: { className?: string }) {
-  return <LucideIcon iconNode={sheep} className={className} />;
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {/* Fluffy body */}
+      <path d="M6 14a3 3 0 0 1 0-6 3 3 0 0 1 2.5-3 3 3 0 0 1 5 0 3 3 0 0 1 4 1 3 3 0 0 1 .5 5 3 3 0 0 1-2 5H8a3 3 0 0 1-2-2z" />
+      {/* Face */}
+      <ellipse cx="9" cy="9" rx="2" ry="2.2" fill="currentColor" opacity="0.15" />
+      <circle cx="8.4" cy="8.7" r="0.5" fill="currentColor" />
+      <circle cx="9.6" cy="8.7" r="0.5" fill="currentColor" />
+      {/* Legs */}
+      <line x1="9" y1="18" x2="9" y2="21" />
+      <line x1="15" y1="18" x2="15" y2="21" />
+    </svg>
+  );
 }
