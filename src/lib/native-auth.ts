@@ -1,5 +1,6 @@
 import { Browser } from "@capacitor/browser";
 import { App, type URLOpenListenerEvent } from "@capacitor/app";
+import { AppLauncher } from "@capacitor/app-launcher";
 import { supabase } from "@/integrations/supabase/client";
 import { NATIVE_OAUTH_CALLBACK_URI, NATIVE_OAUTH_ORIGIN, NATIVE_REDIRECT_URI } from "./native";
 
@@ -50,9 +51,12 @@ export function attachNativeAuthListener() {
   });
 }
 
-/** Opens the given OAuth URL in the system in-app browser (ASWebAuthenticationSession on iOS, Custom Tabs on Android). */
+/** Opens the given OAuth URL outside the Capacitor WebView so iOS can hand the callback back to the app. */
 export async function openNativeAuthUrl(url: string) {
-  await Browser.open({ url, presentationStyle: "popover" });
+  const launched = await AppLauncher.openUrl({ url });
+  if (!launched.completed) {
+    await Browser.open({ url, presentationStyle: "fullscreen" });
+  }
 }
 
 export function buildNativeOAuthUrl(provider: "google" | "apple") {
