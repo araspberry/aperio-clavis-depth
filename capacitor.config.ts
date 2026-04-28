@@ -7,8 +7,8 @@ const usePreviewServer = process.env.CAP_BUILD === 'preview';
 const config: CapacitorConfig = {
   appId: 'com.aperio.app',
   appName: 'Aperio',
-  webDir: 'dist/client',
-  // Omit `server` by default so Capacitor loads the bundled assets from `dist/client/`.
+  webDir: 'dist/capacitor',
+  // Omit `server` by default so Capacitor loads the bundled native assets from `dist/capacitor/`.
   ...(usePreviewServer
     ? {
         server: {

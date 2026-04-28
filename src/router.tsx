@@ -1,4 +1,4 @@
-import { createRouter, useRouter } from "@tanstack/react-router";
+import { createHashHistory, createRouter, useRouter } from "@tanstack/react-router";
 import { QueryClient } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 
@@ -56,6 +56,10 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
 }
 
 export const getRouter = () => {
+  const useHashHistory =
+    typeof window !== "undefined" &&
+    (window.location.protocol === "capacitor:" || window.location.protocol === "file:");
+
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -68,6 +72,7 @@ export const getRouter = () => {
 
   const router = createRouter({
     routeTree,
+    ...(useHashHistory ? { history: createHashHistory() } : {}),
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
