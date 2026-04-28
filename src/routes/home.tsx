@@ -3,7 +3,7 @@ import { AppShell } from "@/components/aperio/AppShell";
 import { AperioMark } from "@/components/aperio/AperioMark";
 import { useAperio } from "@/lib/aperio-store";
 import { SCRIPTURE_OF_DAY } from "@/data/bible";
-import { Bell, Settings, Share2, KeyRound, BookOpen, Sparkles, Cross, Scroll } from "lucide-react";
+import { Bell, Settings, Share2, KeyRound, BookOpen, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/home")({
   head: () => ({
@@ -120,9 +120,9 @@ function HomePage() {
         <section className="mt-6">
           <p className="text-xs uppercase tracking-wider text-muted-foreground">Clavis recommends</p>
           <div className="mt-3 grid gap-3">
-            <PlanCard title="The Gospel of John" desc="A 21-day journey through John, with Clavis unlocking every chapter." book="John" chapter={1} Icon={Cross} />
-            <PlanCard title="Romans — A Deep Dive" desc="Paul's theological masterpiece, verse by verse." book="Romans" chapter={8} Icon={Scroll} />
-            <PlanCard title="30 Days in the Psalms" desc="Hebrew poetry, prayer, and the heart of God." book="Psalms" chapter={23} Icon={SheepIcon} />
+            <PlanCard title="The Gospel of John" desc="A 21-day journey through John, with Clavis unlocking every chapter." book="John" chapter={1} />
+            <PlanCard title="Romans — A Deep Dive" desc="Paul's theological masterpiece, verse by verse." book="Romans" chapter={8} />
+            <PlanCard title="30 Days in the Psalms" desc="Hebrew poetry, prayer, and the heart of God." book="Psalms" chapter={23} />
           </div>
         </section>
       </div>
@@ -130,42 +130,15 @@ function HomePage() {
   );
 }
 
-function PlanCard({ title, desc, book, chapter, Icon }: { title: string; desc: string; book: string; chapter: number; Icon: React.ComponentType<{ className?: string }> }) {
+function PlanCard({ title, desc, book, chapter }: { title: string; desc: string; book: string; chapter: number }) {
   return (
     <Link to="/read/$book/$chapter" params={{ book, chapter: String(chapter) }}
-      className="flex items-start gap-4 rounded-2xl border border-border bg-card p-4 transition hover:border-[var(--gold)]/40">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-gold">
-        <Icon className="h-6 w-6 text-[var(--navy-deep)]" />
-      </div>
-      <div>
+      className="flex items-stretch gap-4 rounded-2xl border border-border bg-card p-4 transition hover:border-[var(--gold)]/40">
+      <div className="w-1 shrink-0 rounded-full bg-gradient-gold" />
+      <div className="py-0.5">
         <p className="font-serif text-base">{title}</p>
         <p className="mt-1 text-xs text-muted-foreground">{desc}</p>
       </div>
     </Link>
-  );
-}
-
-function SheepIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      {/* Fluffy body */}
-      <path d="M6 14a3 3 0 0 1 0-6 3 3 0 0 1 2.5-3 3 3 0 0 1 5 0 3 3 0 0 1 4 1 3 3 0 0 1 .5 5 3 3 0 0 1-2 5H8a3 3 0 0 1-2-2z" />
-      {/* Face */}
-      <ellipse cx="9" cy="9" rx="2" ry="2.2" fill="currentColor" opacity="0.15" />
-      <circle cx="8.4" cy="8.7" r="0.5" fill="currentColor" />
-      <circle cx="9.6" cy="8.7" r="0.5" fill="currentColor" />
-      {/* Legs */}
-      <line x1="9" y1="18" x2="9" y2="21" />
-      <line x1="15" y1="18" x2="15" y2="21" />
-    </svg>
   );
 }
