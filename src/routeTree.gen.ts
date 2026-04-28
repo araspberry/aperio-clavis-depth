@@ -14,6 +14,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PrayerRouteImport } from './routes/prayer'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as NativeAuthCallbackRouteImport } from './routes/native-auth-callback'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
@@ -43,6 +44,11 @@ const PrayerRoute = PrayerRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NativeAuthCallbackRoute = NativeAuthCallbackRouteImport.update({
+  id: '/native-auth-callback',
+  path: '/native-auth-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeRoute = HomeRouteImport.update({
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/home': typeof HomeRoute
+  '/native-auth-callback': typeof NativeAuthCallbackRoute
   '/onboarding': typeof OnboardingRoute
   '/prayer': typeof PrayerRoute
   '/privacy': typeof PrivacyRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/home': typeof HomeRoute
+  '/native-auth-callback': typeof NativeAuthCallbackRoute
   '/onboarding': typeof OnboardingRoute
   '/prayer': typeof PrayerRoute
   '/privacy': typeof PrivacyRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/home': typeof HomeRoute
+  '/native-auth-callback': typeof NativeAuthCallbackRoute
   '/onboarding': typeof OnboardingRoute
   '/prayer': typeof PrayerRoute
   '/privacy': typeof PrivacyRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/home'
+    | '/native-auth-callback'
     | '/onboarding'
     | '/prayer'
     | '/privacy'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/home'
+    | '/native-auth-callback'
     | '/onboarding'
     | '/prayer'
     | '/privacy'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/home'
+    | '/native-auth-callback'
     | '/onboarding'
     | '/prayer'
     | '/privacy'
@@ -151,6 +163,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   HomeRoute: typeof HomeRoute
+  NativeAuthCallbackRoute: typeof NativeAuthCallbackRoute
   OnboardingRoute: typeof OnboardingRoute
   PrayerRoute: typeof PrayerRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -197,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/native-auth-callback': {
+      id: '/native-auth-callback'
+      path: '/native-auth-callback'
+      fullPath: '/native-auth-callback'
+      preLoaderRoute: typeof NativeAuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/home': {
       id: '/home'
       path: '/home'
@@ -239,6 +259,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   HomeRoute: HomeRoute,
+  NativeAuthCallbackRoute: NativeAuthCallbackRoute,
   OnboardingRoute: OnboardingRoute,
   PrayerRoute: PrayerRoute,
   PrivacyRoute: PrivacyRoute,
@@ -250,3 +271,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
