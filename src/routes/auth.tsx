@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Mail, KeyRound } from "lucide-react";
-import { isNative, NATIVE_REDIRECT_URI } from "@/lib/native";
-import { openNativeAuthUrl } from "@/lib/native-auth";
+import { isNative } from "@/lib/native";
+import { buildNativeOAuthUrl, openNativeAuthUrl } from "@/lib/native-auth";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -69,18 +69,15 @@ function AuthPage() {
     setBusy(true);
     try {
       const native = isNative();
+      if (native) {
+        await openNativeAuthUrl(buildNativeOAuthUrl(provider));
+        return;
+      }
+
       const result = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: native ? NATIVE_REDIRECT_URI : window.location.origin,
+        redirect_uri: window.location.origin,
       });
       if (result.error) throw result.error;
-      // On native, the SDK returns a URL to open in the system browser
-      // rather than navigating the webview. Open it via Capacitor Browser
-      // so the OS handles the OAuth handoff and our deep-link listener
-      // catches the callback.
-      const maybeUrl = (result as unknown as { url?: string }).url;
-      if (native && result.redirected && maybeUrl) {
-        await openNativeAuthUrl(maybeUrl);
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : `${provider} sign-in failed`);
       setBusy(false);
