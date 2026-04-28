@@ -1,6 +1,5 @@
 import { Browser } from "@capacitor/browser";
 import { App, type URLOpenListenerEvent } from "@capacitor/app";
-import { AppLauncher } from "@capacitor/app-launcher";
 import { supabase } from "@/integrations/supabase/client";
 import { NATIVE_OAUTH_CALLBACK_URI, NATIVE_OAUTH_ORIGIN, NATIVE_REDIRECT_URI } from "./native";
 
@@ -51,20 +50,18 @@ export function attachNativeAuthListener() {
   });
 }
 
-/** Opens the given OAuth URL outside the Capacitor WebView so iOS can hand the callback back to the app. */
-export async function openNativeAuthUrl(url: string) {
-  const launched = await AppLauncher.openUrl({ url });
-  if (!launched.completed) {
-    await Browser.open({ url, presentationStyle: "fullscreen" });
-  }
-}
-
-export function buildNativeOAuthUrl(provider: "google" | "apple") {
-  const params = new URLSearchParams({
+/** Starts OAuth without redirecting the Capacitor WebView away from the bundled app. */
+export async function startNativeOAuth(provider: "google" | "apple") {
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
-    redirect_uri: NATIVE_OAUTH_CALLBACK_URI,
-    state: crypto.randomUUID(),
+    options: {
+      redirectTo: NATIVE_OAUTH_CALLBACK_URI,
+      skipBrowserRedirect: true,
+    },
   });
 
-  return `${NATIVE_OAUTH_ORIGIN}/~oauth/initiate?${params.toString()}`;
+  if (error) throw error;
+  if (!data.url) throw new Error(`Could not start ${provider} sign-in`);
+
+  await Browser.open({ url: data.url, presentationStyle: "fullscreen" });
 }
