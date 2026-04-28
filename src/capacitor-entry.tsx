@@ -4,12 +4,17 @@ import { RouterProvider } from "@tanstack/react-router";
 
 import { getRouter } from "./router";
 import "./styles.css";
+import { forwardNativeOAuthCallback } from "./lib/native-auth";
 
 startTransition(() => {
   const rootElement = document.getElementById("root");
 
   if (!rootElement) {
     throw new Error("Root element not found");
+  }
+
+  if (forwardNativeOAuthCallback()) {
+    return;
   }
 
   const router = getRouter();

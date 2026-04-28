@@ -1,9 +1,19 @@
 import { Browser } from "@capacitor/browser";
 import { App, type URLOpenListenerEvent } from "@capacitor/app";
 import { supabase } from "@/integrations/supabase/client";
-import { NATIVE_OAUTH_ORIGIN, NATIVE_REDIRECT_URI } from "./native";
+import { NATIVE_OAUTH_CALLBACK_URI, NATIVE_OAUTH_ORIGIN, NATIVE_REDIRECT_URI } from "./native";
 
 let listenerAttached = false;
+
+export function forwardNativeOAuthCallback() {
+  if (typeof window === "undefined") return false;
+  if (window.location.origin !== NATIVE_OAUTH_ORIGIN || window.location.pathname !== "/native-auth-callback") {
+    return false;
+  }
+
+  window.location.replace(`${NATIVE_REDIRECT_URI}${window.location.search}${window.location.hash}`);
+  return true;
+}
 
 /**
  * Registers a single global listener that catches OAuth callback deep links
@@ -48,7 +58,7 @@ export async function openNativeAuthUrl(url: string) {
 export function buildNativeOAuthUrl(provider: "google" | "apple") {
   const params = new URLSearchParams({
     provider,
-    redirect_uri: NATIVE_REDIRECT_URI,
+    redirect_uri: NATIVE_OAUTH_CALLBACK_URI,
     state: crypto.randomUUID(),
   });
 
