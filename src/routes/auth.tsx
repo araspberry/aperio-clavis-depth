@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Mail, KeyRound } from "lucide-react";
 import { isNative } from "@/lib/native";
-import { buildNativeOAuthUrl, openNativeAuthUrl } from "@/lib/native-auth";
+import { startNativeOAuth } from "@/lib/native-auth";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -70,7 +70,7 @@ function AuthPage() {
     try {
       const native = isNative();
       if (native) {
-        await openNativeAuthUrl(buildNativeOAuthUrl(provider));
+        await startNativeOAuth(provider);
         return;
       }
 
