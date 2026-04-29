@@ -93,7 +93,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { book, chapter, verse, tone = "balanced", passageText } = await req.json();
+    const { book, chapter, verse, tone = "balanced" } = await req.json();
     if (!book || !chapter) {
       return new Response(JSON.stringify({ error: "book and chapter are required" }), {
         status: 400,
@@ -115,28 +115,33 @@ serve(async (req) => {
       tonePrompt(tone as Tone),
     ].join(" ");
 
+    // Note: do NOT include the passage text verbatim — Gemini may block with
+    // finish_reason "RECITATION" when scripture is quoted back. Reference by citation only.
     const userPrompt = [
       `Generate Clavis commentary on ${ref}.`,
-      passageText ? `\n\nThe passage text is:\n"""\n${passageText}\n"""` : "",
       verse ? `\nFocus especially on verse ${verse}, but situate it in the chapter.` : "",
+      "\nDo not quote the passage verbatim in your commentary — paraphrase or reference by clause.",
     ].join("");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools,
-        tool_choice: { type: "function", function: { name: "render_commentary" } },
-      }),
-    });
+    const callModel = (model: string) =>
+      fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          tools,
+          tool_choice: { type: "function", function: { name: "render_commentary" } },
+        }),
+      });
+
+    let response = await callModel("google/gemini-2.5-flash");
 
     if (response.status === 429) {
       return new Response(JSON.stringify({ error: "Clavis is at capacity right now. Please try again in a moment." }), {
@@ -159,11 +164,25 @@ serve(async (req) => {
       });
     }
 
-    const data = await response.json();
-    const toolCall = data?.choices?.[0]?.message?.tool_calls?.[0];
-    const args = toolCall?.function?.arguments;
+    let data = await response.json();
+    let toolCall = data?.choices?.[0]?.message?.tool_calls?.[0];
+    let args = toolCall?.function?.arguments;
+    const finish = data?.choices?.[0]?.finish_reason;
+    const native = data?.choices?.[0]?.native_finish_reason;
+
+    // Retry on Gemini RECITATION block or any missing tool call, using GPT as fallback.
+    if (!args || finish === "error" || native === "RECITATION") {
+      console.warn("Primary model failed (finish:", finish, native, "), retrying with openai/gpt-5-mini");
+      response = await callModel("openai/gpt-5-mini");
+      if (response.ok) {
+        data = await response.json();
+        toolCall = data?.choices?.[0]?.message?.tool_calls?.[0];
+        args = toolCall?.function?.arguments;
+      }
+    }
+
     if (!args) {
-      console.error("No tool call returned:", JSON.stringify(data).slice(0, 500));
+      console.error("No tool call returned:", JSON.stringify(data).slice(0, 800));
       return new Response(JSON.stringify({ error: "Clavis did not return structured commentary." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
