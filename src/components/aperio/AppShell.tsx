@@ -1,5 +1,4 @@
-import { type ReactNode, useEffect } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { type ReactNode } from "react";
 import { useAperio } from "@/lib/aperio-store";
 import { BottomNav } from "./BottomNav";
 
