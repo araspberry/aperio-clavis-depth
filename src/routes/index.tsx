@@ -15,8 +15,7 @@ function Splash() {
   useEffect(() => {
     if (loading) return;
     const t = setTimeout(() => {
-      if (!userId) navigate({ to: "/auth" });
-      else navigate({ to: profile.onboarded ? "/home" : "/onboarding" });
+      navigate({ to: profile.onboarded ? "/home" : "/onboarding" });
     }, 1400);
     return () => clearTimeout(t);
   }, [loading, userId, profile.onboarded, navigate]);
