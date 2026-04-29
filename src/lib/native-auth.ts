@@ -57,17 +57,14 @@ export function attachNativeAuthListener() {
 export async function startNativeOAuth(provider: "google" | "apple") {
   attachNativeAuthListener();
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
+  const state = crypto.randomUUID();
+  const params = new URLSearchParams({
     provider,
-    options: {
-      redirectTo: NATIVE_OAUTH_CALLBACK_URI,
-      skipBrowserRedirect: true,
-    },
+    redirect_uri: NATIVE_OAUTH_CALLBACK_URI,
+    state,
   });
+  const url = `${NATIVE_OAUTH_ORIGIN}/~oauth/initiate?${params.toString()}`;
 
-  if (error) throw error;
-  if (!data.url) throw new Error(`Could not start ${provider} sign-in`);
-
-  console.info("[native-auth] opening OAuth URL outside the WebView");
-  await AppLauncher.openUrl({ url: data.url });
+  console.info("[native-auth] opening managed OAuth URL outside the WebView");
+  await AppLauncher.openUrl({ url });
 }
