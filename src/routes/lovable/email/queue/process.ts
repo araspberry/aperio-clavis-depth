@@ -1,6 +1,10 @@
 import { sendLovableEmail } from '@lovable.dev/email-js'
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createFileRoute } from '@tanstack/react-router'
+
+// Use untyped client to avoid generic mismatches with project's Database types.
+const createClient = (url: string, key: string, opts?: any): any =>
+  createSupabaseClient(url, key, opts)
 
 const MAX_RETRIES = 5
 const DEFAULT_BATCH_SIZE = 10
