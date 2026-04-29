@@ -3,7 +3,10 @@ import { Capacitor } from "@capacitor/core";
 export const isNative = () => Capacitor.isNativePlatform();
 
 /** Custom URL scheme used by the native app for OAuth callbacks. Must match Info.plist / AndroidManifest. */
-export const NATIVE_REDIRECT_URI = "app.aperio://auth/callback";
+export const NATIVE_REDIRECT_URI = "com.aperio.app://auth/callback";
+
+/** Previous callback scheme accepted for older local native builds. */
+export const LEGACY_NATIVE_REDIRECT_URI = "app.aperio://auth/callback";
 
 /** Hosted app origin used only to reach Lovable Cloud's OAuth broker from bundled native assets. */
 export const NATIVE_OAUTH_ORIGIN = "https://id-preview--21d047b4-6ebe-4204-bbe4-9146665fff55.lovable.app";

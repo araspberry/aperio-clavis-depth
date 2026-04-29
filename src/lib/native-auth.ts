@@ -1,7 +1,7 @@
 import { Browser } from "@capacitor/browser";
 import { App, type URLOpenListenerEvent } from "@capacitor/app";
 import { supabase } from "@/integrations/supabase/client";
-import { NATIVE_OAUTH_CALLBACK_URI, NATIVE_OAUTH_ORIGIN, NATIVE_REDIRECT_URI } from "./native";
+import { LEGACY_NATIVE_REDIRECT_URI, NATIVE_OAUTH_CALLBACK_URI, NATIVE_OAUTH_ORIGIN, NATIVE_REDIRECT_URI } from "./native";
 
 let listenerAttached = false;
 
@@ -17,7 +17,7 @@ export function forwardNativeOAuthCallback() {
 
 /**
  * Registers a single global listener that catches OAuth callback deep links
- * (e.g. app.aperio://auth/callback#access_token=...) and hands the tokens
+ * (e.g. com.aperio.app://auth/callback#access_token=...) and hands the tokens
  * to Supabase. Safe to call multiple times — only attaches once.
  */
 export function attachNativeAuthListener() {
@@ -26,7 +26,7 @@ export function attachNativeAuthListener() {
 
   void App.addListener("appUrlOpen", async (event: URLOpenListenerEvent) => {
     const url = event.url;
-    if (!url.startsWith(NATIVE_REDIRECT_URI)) return;
+    if (!url.startsWith(NATIVE_REDIRECT_URI) && !url.startsWith(LEGACY_NATIVE_REDIRECT_URI)) return;
 
     // Tokens may arrive as a hash fragment (implicit flow) or as a `code` query param (PKCE).
     const parsed = new URL(url);
@@ -52,6 +52,8 @@ export function attachNativeAuthListener() {
 
 /** Starts OAuth without redirecting the Capacitor WebView away from the bundled app. */
 export async function startNativeOAuth(provider: "google" | "apple") {
+  attachNativeAuthListener();
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
