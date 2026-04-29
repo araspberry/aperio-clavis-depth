@@ -26,15 +26,61 @@ function ResetPasswordPage() {
   const [info, setInfo] = useState<string | null>(null);
 
   useEffect(() => {
-    // Supabase parses the recovery token from the URL hash and emits
-    // a PASSWORD_RECOVERY event. Wait for either that or an existing session.
+    let cancelled = false;
+
+    // Listen for PASSWORD_RECOVERY (hash-based recovery links).
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (cancelled) return;
       if (event === "PASSWORD_RECOVERY" || session) setReady(true);
     });
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setReady(true);
-    });
-    return () => sub.subscription.unsubscribe();
+
+    (async () => {
+      // Newer recovery links use ?token_hash=...&type=recovery (PKCE).
+      // Exchange it explicitly so a session exists for updateUser().
+      try {
+        const url = new URL(window.location.href);
+        const tokenHash = url.searchParams.get("token_hash");
+        const type = url.searchParams.get("type");
+        const code = url.searchParams.get("code");
+
+        if (tokenHash && type) {
+          const { error } = await supabase.auth.verifyOtp({
+            type: type as "recovery",
+            token_hash: tokenHash,
+          });
+          if (!cancelled) {
+            if (error) setError(error.message);
+            else setReady(true);
+          }
+          // Clean URL
+          window.history.replaceState({}, "", url.pathname);
+          return;
+        }
+
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!cancelled) {
+            if (error) setError(error.message);
+            else setReady(true);
+          }
+          window.history.replaceState({}, "", url.pathname);
+          return;
+        }
+
+        // Hash-based fallback: detectSessionInUrl will populate session.
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && !cancelled) setReady(true);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Invalid or expired reset link");
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const submit = async (e: React.FormEvent) => {
