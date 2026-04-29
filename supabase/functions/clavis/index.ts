@@ -93,7 +93,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { book, chapter, verse, tone = "balanced", passageText } = await req.json();
+    const { book, chapter, verse, tone = "balanced" } = await req.json();
     if (!book || !chapter) {
       return new Response(JSON.stringify({ error: "book and chapter are required" }), {
         status: 400,
