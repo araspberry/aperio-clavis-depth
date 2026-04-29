@@ -1,4 +1,4 @@
-import { Browser } from "@capacitor/browser";
+import { AppLauncher } from "@capacitor/app-launcher";
 import { App, type URLOpenListenerEvent } from "@capacitor/app";
 import { supabase } from "@/integrations/supabase/client";
 import { LEGACY_NATIVE_REDIRECT_URI, NATIVE_OAUTH_CALLBACK_URI, NATIVE_OAUTH_ORIGIN, NATIVE_REDIRECT_URI } from "./native";
@@ -26,6 +26,7 @@ export function attachNativeAuthListener() {
 
   void App.addListener("appUrlOpen", async (event: URLOpenListenerEvent) => {
     const url = event.url;
+    console.info("[native-auth] appUrlOpen", url);
     if (!url.startsWith(NATIVE_REDIRECT_URI) && !url.startsWith(LEGACY_NATIVE_REDIRECT_URI)) return;
 
     // Tokens may arrive as a hash fragment (implicit flow) or as a `code` query param (PKCE).
@@ -41,11 +42,13 @@ export function attachNativeAuthListener() {
         await supabase.auth.setSession({ access_token, refresh_token });
       } else if (code) {
         await supabase.auth.exchangeCodeForSession(code);
+      } else {
+        console.warn("[native-auth] callback received without OAuth tokens or code", url);
       }
     } catch (e) {
       console.error("[native-auth] failed to set session", e);
     } finally {
-      await Browser.close().catch(() => {});
+      console.info("[native-auth] callback handled");
     }
   });
 }
@@ -65,5 +68,6 @@ export async function startNativeOAuth(provider: "google" | "apple") {
   if (error) throw error;
   if (!data.url) throw new Error(`Could not start ${provider} sign-in`);
 
-  await Browser.open({ url: data.url, presentationStyle: "fullscreen" });
+  console.info("[native-auth] opening OAuth URL outside the WebView");
+  await AppLauncher.openUrl({ url: data.url });
 }
