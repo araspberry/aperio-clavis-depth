@@ -23,10 +23,6 @@ function Onboarding() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !userId) navigate({ to: "/auth" });
-  }, [loading, userId, navigate]);
-
-  useEffect(() => {
     setDraft({ ...profile });
   }, [profile]);
 
