@@ -1,18 +1,9 @@
-import { type ReactNode, useEffect } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { type ReactNode } from "react";
 import { useAperio } from "@/lib/aperio-store";
 import { BottomNav } from "./BottomNav";
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { profile, userId, loading } = useAperio();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (loading) return;
-    if (!profile.onboarded) {
-      navigate({ to: "/onboarding" });
-    }
-  }, [loading, userId, profile.onboarded, navigate]);
+  const { loading } = useAperio();
 
   if (loading) {
     return (

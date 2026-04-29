@@ -15,16 +15,12 @@ export const Route = createFileRoute("/onboarding")({
 const TOTAL = 14; // 0..13
 
 function Onboarding() {
-  const { profile, userId, loading } = useAperio();
+  const { profile } = useAperio();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState({ ...profile });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && !userId) navigate({ to: "/auth" });
-  }, [loading, userId, navigate]);
 
   useEffect(() => {
     setDraft({ ...profile });
