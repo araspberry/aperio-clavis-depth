@@ -4,15 +4,7 @@ import { useAperio } from "@/lib/aperio-store";
 import { BottomNav } from "./BottomNav";
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { profile, userId, loading } = useAperio();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (loading) return;
-    if (!profile.onboarded) {
-      navigate({ to: "/onboarding" });
-    }
-  }, [loading, userId, profile.onboarded, navigate]);
+  const { loading } = useAperio();
 
   if (loading) {
     return (
