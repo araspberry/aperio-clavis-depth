@@ -21,6 +21,7 @@ type Step = 0 | 1 | 2;
 
 function AuthPage() {
   const navigate = useNavigate();
+  useEffect(() => { navigate({ to: "/home" }); }, [navigate]);
   const [mode, setMode] = useState<Mode>("signin");
   const [step, setStep] = useState<Step>(0);
   const [direction, setDirection] = useState<1 | -1>(1);
