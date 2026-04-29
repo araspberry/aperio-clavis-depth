@@ -9,10 +9,6 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
-    if (!userId) {
-      navigate({ to: "/auth" });
-      return;
-    }
     if (!profile.onboarded) {
       navigate({ to: "/onboarding" });
     }
