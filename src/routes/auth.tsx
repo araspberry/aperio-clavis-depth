@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, ArrowLeft, ArrowRight, Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
@@ -21,7 +22,6 @@ type Step = 0 | 1 | 2;
 
 function AuthPage() {
   const navigate = useNavigate();
-  useEffect(() => { navigate({ to: "/home" }); }, [navigate]);
   const [mode, setMode] = useState<Mode>("signin");
   const [step, setStep] = useState<Step>(0);
   const [direction, setDirection] = useState<1 | -1>(1);
@@ -93,6 +93,26 @@ function AuthPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send reset email");
     } finally {
+      setBusy(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        setError(result.error instanceof Error ? result.error.message : "Google sign-in failed.");
+        setBusy(false);
+        return;
+      }
+      if (result.redirected) return;
+      navigate({ to: "/home" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Google sign-in failed.");
       setBusy(false);
     }
   };
@@ -172,6 +192,27 @@ function AuthPage() {
                     primary
                   />
                 </div>
+
+                <div className="mt-6 flex items-center gap-3">
+                  <div className="h-px flex-1 bg-white/10" />
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--cream)]/40">or</span>
+                  <div className="h-px flex-1 bg-white/10" />
+                </div>
+
+                <button
+                  onClick={signInWithGoogle}
+                  disabled={busy}
+                  className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/5 px-5 py-4 text-sm text-[var(--cream)] transition hover:border-white/30 hover:bg-white/10 disabled:opacity-50"
+                >
+                  {busy ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
+                      <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.4-1.6 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.9 1.5l2.6-2.5C16.9 3.4 14.7 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12s4.3 9.6 9.6 9.6c5.5 0 9.2-3.9 9.2-9.4 0-.6-.1-1.1-.2-1.7H12z"/>
+                    </svg>
+                  )}
+                  <span>Continue with Google</span>
+                </button>
               </motion.div>
             )}
 
