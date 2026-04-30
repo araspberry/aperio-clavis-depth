@@ -169,7 +169,12 @@ function BookCard({ book }: { book: Book }) {
               key={n}
               onClick={() => {
                 setOpen(false);
-                navigate({ to: "/read/$book/$chapter", params: { book: book.name, chapter: String(n) } });
+                // Defer navigation so Radix can fully unmount the popover and
+                // release its scroll/pointer lock before the route changes.
+                // Without this, iOS WKWebView leaves the body scroll-locked.
+                setTimeout(() => {
+                  navigate({ to: "/read/$book/$chapter", params: { book: book.name, chapter: String(n) } });
+                }, 0);
               }}
               className="aspect-square rounded-md border border-border/60 bg-background text-sm text-foreground/85 transition hover:border-[var(--gold)]/60 hover:bg-[var(--gold)]/10 hover:text-foreground"
             >
