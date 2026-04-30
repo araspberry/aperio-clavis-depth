@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { resolve } from "node:path";
-import { renameSync } from "node:fs";
+import { existsSync, renameSync } from "node:fs";
 
 export default defineConfig({
   base: "./",
@@ -14,7 +14,16 @@ export default defineConfig({
     {
       name: "capacitor-index-html",
       closeBundle() {
-        renameSync("dist/capacitor/index.capacitor.html", "dist/capacitor/index.html");
+        const src = "dist/capacitor/index.capacitor.html";
+        const dest = "dist/capacitor/index.html";
+        if (!existsSync(src)) {
+          throw new Error(
+            `[capacitor-index-html] Expected ${src} to exist after build, but it was not emitted. ` +
+            `This usually means Vite couldn't transform any modules — most often because the project ` +
+            `path contains special characters like '#'. Rename the project folder and rebuild.`
+          );
+        }
+        renameSync(src, dest);
       },
     },
   ],
