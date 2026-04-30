@@ -4,11 +4,6 @@ import { AppShell } from "@/components/aperio/AppShell";
 import { BOOKS } from "@/data/bible";
 import { useAperio } from "@/lib/aperio-store";
 import { ChevronRight, Search, X } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 type Book = (typeof BOOKS)[number];
 
@@ -147,42 +142,31 @@ function BookCard({ book }: { book: Book }) {
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button className="group w-full rounded-xl border border-border bg-card px-4 py-3 text-left transition hover:border-[var(--gold)]/40 data-[state=open]:border-[var(--gold)]/60">
-          <p className="font-serif text-base">{book.name}</p>
-          <p className="text-xs text-muted-foreground">{book.chapters} chapters</p>
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        sideOffset={6}
-        className="w-[min(20rem,90vw)] border-border/70 bg-card p-3"
+    <div className="rounded-xl border border-border bg-card transition focus-within:border-[var(--gold)]/50">
+      <button
+        onClick={() => setOpen((value) => !value)}
+        className="group w-full px-4 py-3 text-left transition hover:border-[var(--gold)]/40"
+        aria-expanded={open}
       >
-        <div className="flex items-baseline justify-between px-1 pb-2">
-          <p className="font-serif text-sm">{book.name}</p>
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Choose a chapter</p>
+        <p className="font-serif text-base">{book.name}</p>
+        <p className="text-xs text-muted-foreground">{book.chapters} chapters</p>
+      </button>
+      {open && (
+        <div className="border-t border-border/70 p-3">
+          <p className="px-1 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground">Choose a chapter</p>
+          <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
+            {Array.from({ length: book.chapters }, (_, i) => i + 1).map((n) => (
+              <button
+                key={n}
+                onClick={() => navigate({ to: "/read/$book/$chapter", params: { book: book.name, chapter: String(n) } })}
+                className="aspect-square rounded-md border border-border/60 bg-background text-sm text-foreground/85 transition hover:border-[var(--gold)]/60 hover:bg-[var(--gold)]/10 hover:text-foreground"
+              >
+                {n}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="grid max-h-[50vh] grid-cols-6 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-8">
-          {Array.from({ length: book.chapters }, (_, i) => i + 1).map((n) => (
-            <button
-              key={n}
-              onClick={() => {
-                setOpen(false);
-                // Defer navigation so Radix can fully unmount the popover and
-                // release its scroll/pointer lock before the route changes.
-                // Without this, iOS WKWebView leaves the body scroll-locked.
-                setTimeout(() => {
-                  navigate({ to: "/read/$book/$chapter", params: { book: book.name, chapter: String(n) } });
-                }, 0);
-              }}
-              className="aspect-square rounded-md border border-border/60 bg-background text-sm text-foreground/85 transition hover:border-[var(--gold)]/60 hover:bg-[var(--gold)]/10 hover:text-foreground"
-            >
-              {n}
-            </button>
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
+      )}
+    </div>
   );
 }
