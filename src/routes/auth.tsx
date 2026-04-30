@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { isNative } from "@/lib/native";
+import { startNativeOAuth } from "@/lib/native-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, ArrowLeft, ArrowRight, Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
@@ -105,6 +107,13 @@ function AuthPage() {
     setBusy(true);
     setError(null);
     try {
+      if (isNative()) {
+        // On iOS/Android, OAuth must happen in the system browser (Google blocks WKWebView).
+        // The deep-link listener in native-auth.ts will set the session when the callback returns.
+        await startNativeOAuth("google");
+        // Keep busy spinner — listener will trigger onAuthStateChange and navigate to /home.
+        return;
+      }
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
