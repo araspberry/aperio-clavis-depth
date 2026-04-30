@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/aperio/AppShell";
 import { addPrayer, updatePrayer, useAperio, type PrayerEntry } from "@/lib/aperio-store";
 import { Heart, Shield, Cross, Users, Briefcase, Coins, Globe, Sprout, HandHeart, BookOpen, MoreHorizontal, Check, Sparkles } from "lucide-react";
+import { requireAuth } from "@/lib/require-auth";
 
 const CATEGORIES = [
   { id: "Gratitude", icon: Heart },
@@ -19,6 +20,7 @@ const CATEGORIES = [
 ] as const;
 
 export const Route = createFileRoute("/prayer")({
+  beforeLoad: ({ location }) => requireAuth(location.href),
   head: () => ({ meta: [{ title: "Prayer Journal — Aperio" }] }),
   component: PrayerPage,
 });
