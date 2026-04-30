@@ -90,7 +90,11 @@ function ReadIndex() {
             <p className="text-xs uppercase tracking-wider text-muted-foreground">
               {filtered.length} match{filtered.length === 1 ? "" : "es"}
             </p>
-            <BookGrid books={filtered} selectedBookName={selectedBookName} onSelect={setSelectedBookName} />
+            <BookGrid
+              books={filtered}
+              selectedBookName={selectedBookName}
+              onSelect={setSelectedBookName}
+            />
           </section>
         ) : (
           <>
@@ -163,7 +167,12 @@ function BookGrid({
   return (
     <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
       {books.map((b) => (
-        <BookCard key={b.name} book={b} selected={selectedBookName === b.name} onSelect={onSelect} />
+        <BookCard
+          key={b.name}
+          book={b}
+          selected={selectedBookName === b.name}
+          onSelect={onSelect}
+        />
       ))}
     </div>
   );
@@ -213,7 +222,9 @@ function ChapterChooser({ book }: { book: Book }) {
     <section className="mt-6 rounded-2xl border border-[var(--gold)]/30 bg-card p-4 shadow-cathedral">
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="font-serif text-xl">{book.name}</h2>
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Choose a chapter</p>
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          Choose a chapter
+        </p>
       </div>
       <div className="mt-3 grid grid-cols-6 gap-1.5 sm:grid-cols-8">
         {Array.from({ length: book.chapters }, (_, i) => i + 1).map((n) => (
