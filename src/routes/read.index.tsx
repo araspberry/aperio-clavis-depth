@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/aperio/AppShell";
 import { BOOKS } from "@/data/bible";
@@ -29,17 +29,12 @@ export const Route = createFileRoute("/read/")({
 function ReadIndex() {
   const { lastRead } = useAperio();
   const [query, setQuery] = useState("");
-  const [selectedBookName, setSelectedBookName] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return null;
     return BOOKS.filter((b) => b.name.toLowerCase().includes(q));
   }, [query]);
-  const selectedBook = useMemo(
-    () => BOOKS.find((b) => b.name === selectedBookName) ?? null,
-    [selectedBookName],
-  );
 
   return (
     <AppShell>
@@ -83,35 +78,17 @@ function ReadIndex() {
           )}
         </div>
 
-        {selectedBook && <ChapterChooser book={selectedBook} />}
-
         {filtered ? (
           <section className="mt-6">
             <p className="text-xs uppercase tracking-wider text-muted-foreground">
               {filtered.length} match{filtered.length === 1 ? "" : "es"}
             </p>
-            <BookGrid
-              books={filtered}
-              selectedBookName={selectedBookName}
-              onSelect={setSelectedBookName}
-            />
+            <BookGrid books={filtered} />
           </section>
         ) : (
           <>
-            <Testament
-              title="New Testament"
-              groups={NT_GROUPS}
-              testament="NT"
-              selectedBookName={selectedBookName}
-              onSelect={setSelectedBookName}
-            />
-            <Testament
-              title="Old Testament"
-              groups={OT_GROUPS}
-              testament="OT"
-              selectedBookName={selectedBookName}
-              onSelect={setSelectedBookName}
-            />
+            <Testament title="New Testament" groups={NT_GROUPS} testament="NT" />
+            <Testament title="Old Testament" groups={OT_GROUPS} testament="OT" />
           </>
         )}
       </div>
