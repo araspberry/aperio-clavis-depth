@@ -30,7 +30,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" },
       { title: "Aperio — Where Scripture Opens" },
       { name: "description", content: "Aperio is a scholarly Bible reader with Clavis — an AI commentary engine that opens every passage with Greek & Hebrew lexicon, cross references, and historical context." },
       { name: "author", content: "Aperio" },
