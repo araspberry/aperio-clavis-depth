@@ -19,6 +19,7 @@ const CATEGORIES = [
 ] as const;
 
 export const Route = createFileRoute("/prayer")({
+  beforeLoad: ({ location }) => requireAuth(location.href),
   head: () => ({ meta: [{ title: "Prayer Journal — Aperio" }] }),
   component: PrayerPage,
 });
