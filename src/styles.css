@@ -194,3 +194,12 @@
     letter-spacing: 0.05em;
   }
 }
+
+/* iOS WKWebView momentum scroll fix.
+ * Without these, touch scrolling in Capacitor on iOS feels stuck —
+ * the user has to press-and-hold to drag instead of flicking naturally. */
+html, body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
+  touch-action: pan-y;
+}
