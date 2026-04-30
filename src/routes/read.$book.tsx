@@ -10,7 +10,8 @@ export const Route = createFileRoute("/read/$book")({
 
 function ChapterPickerPage() {
   const { book } = useParams({ from: "/read/$book" });
-  const bookMeta = BOOKS.find((b) => b.name === book) ?? BOOKS.find((b) => b.name === decodeURIComponent(book));
+  const bookMeta =
+    BOOKS.find((b) => b.name === book) ?? BOOKS.find((b) => b.name === decodeURIComponent(book));
 
   if (!bookMeta) {
     return (
