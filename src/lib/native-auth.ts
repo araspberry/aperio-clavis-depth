@@ -1,4 +1,4 @@
-import { AppLauncher } from "@capacitor/app-launcher";
+import { Browser } from "@capacitor/browser";
 import { App, type URLOpenListenerEvent } from "@capacitor/app";
 import { supabase } from "@/integrations/supabase/client";
 import { LEGACY_NATIVE_REDIRECT_URI, NATIVE_OAUTH_CALLBACK_URI, NATIVE_OAUTH_ORIGIN, NATIVE_REDIRECT_URI } from "./native";
@@ -29,6 +29,9 @@ export function attachNativeAuthListener() {
     console.info("[native-auth] appUrlOpen", url);
     if (!url.startsWith(NATIVE_REDIRECT_URI) && !url.startsWith(LEGACY_NATIVE_REDIRECT_URI)) return;
 
+    // Close the in-app browser (SFSafariViewController) as soon as we get the callback.
+    try { await Browser.close(); } catch (e) { /* no-op if already closed */ }
+
     // Tokens may arrive as a hash fragment (implicit flow) or as a `code` query param (PKCE).
     const parsed = new URL(url);
     const hash = parsed.hash.startsWith("#") ? parsed.hash.slice(1) : parsed.hash;
@@ -53,7 +56,7 @@ export function attachNativeAuthListener() {
   });
 }
 
-/** Starts OAuth without redirecting the Capacitor WebView away from the bundled app. */
+/** Starts OAuth in an in-app browser so the deep-link return reopens this app reliably. */
 export async function startNativeOAuth(provider: "google" | "apple") {
   attachNativeAuthListener();
 
@@ -65,6 +68,9 @@ export async function startNativeOAuth(provider: "google" | "apple") {
   });
   const url = `${NATIVE_OAUTH_ORIGIN}/~oauth/initiate?${params.toString()}`;
 
-  console.info("[native-auth] opening managed OAuth URL outside the WebView");
-  await AppLauncher.openUrl({ url });
+  console.info("[native-auth] opening managed OAuth URL in in-app browser");
+  // SFSafariViewController on iOS, Chrome Custom Tab on Android.
+  // Crucially, it shares cookies with Safari (so existing Google session works)
+  // and iOS will dismiss it automatically when the deep-link scheme fires.
+  await Browser.open({ url, presentationStyle: "popover" });
 }
