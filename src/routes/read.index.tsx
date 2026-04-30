@@ -29,12 +29,17 @@ export const Route = createFileRoute("/read/")({
 function ReadIndex() {
   const { lastRead } = useAperio();
   const [query, setQuery] = useState("");
+  const [selectedBookName, setSelectedBookName] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return null;
     return BOOKS.filter((b) => b.name.toLowerCase().includes(q));
   }, [query]);
+  const selectedBook = useMemo(
+    () => BOOKS.find((b) => b.name === selectedBookName) ?? null,
+    [selectedBookName],
+  );
 
   return (
     <AppShell>
@@ -65,7 +70,7 @@ function ReadIndex() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search any book…"
-            className="w-full rounded-full border border-border bg-card py-3 pl-11 pr-10 text-sm placeholder:text-muted-foreground focus:border-[var(--gold)]/50 focus:outline-none"
+            className="w-full rounded-full border border-border bg-card py-3 pl-11 pr-10 text-base placeholder:text-muted-foreground focus:border-[var(--gold)]/50 focus:outline-none"
           />
           {query && (
             <button
@@ -78,17 +83,31 @@ function ReadIndex() {
           )}
         </div>
 
+        {selectedBook && <ChapterChooser book={selectedBook} />}
+
         {filtered ? (
           <section className="mt-6">
             <p className="text-xs uppercase tracking-wider text-muted-foreground">
               {filtered.length} match{filtered.length === 1 ? "" : "es"}
             </p>
-            <BookGrid books={filtered} />
+            <BookGrid books={filtered} selectedBookName={selectedBookName} onSelect={setSelectedBookName} />
           </section>
         ) : (
           <>
-            <Testament title="New Testament" groups={NT_GROUPS} testament="NT" />
-            <Testament title="Old Testament" groups={OT_GROUPS} testament="OT" />
+            <Testament
+              title="New Testament"
+              groups={NT_GROUPS}
+              testament="NT"
+              selectedBookName={selectedBookName}
+              onSelect={setSelectedBookName}
+            />
+            <Testament
+              title="Old Testament"
+              groups={OT_GROUPS}
+              testament="OT"
+              selectedBookName={selectedBookName}
+              onSelect={setSelectedBookName}
+            />
           </>
         )}
       </div>
