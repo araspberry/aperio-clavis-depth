@@ -14,7 +14,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="native-scroll-root min-h-screen bg-background pb-24">
       {children}
       <BottomNav />
     </div>
