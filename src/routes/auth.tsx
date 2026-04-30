@@ -14,6 +14,9 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Sign in to Aperio to sync your prayers, notes, and bookmarks across devices." },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+  }),
   component: AuthPage,
 });
 
