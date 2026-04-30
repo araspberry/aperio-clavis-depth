@@ -4,8 +4,10 @@ import { AperioMark } from "@/components/aperio/AperioMark";
 import { useAperio } from "@/lib/aperio-store";
 import { SCRIPTURE_OF_DAY } from "@/data/bible";
 import { Bell, Settings, Share2, KeyRound, BookOpen, Sparkles } from "lucide-react";
+import { requireAuth } from "@/lib/require-auth";
 
 export const Route = createFileRoute("/home")({
+  beforeLoad: ({ location }) => requireAuth(location.href),
   head: () => ({
     meta: [
       { title: "Home — Aperio" },
