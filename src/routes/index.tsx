@@ -1,6 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { useAperio } from "@/lib/aperio-store";
 import logo from "@/assets/aperio-logo.png";
 
@@ -15,7 +14,11 @@ function Splash() {
   useEffect(() => {
     if (loading) return;
     const t = setTimeout(() => {
-      navigate({ to: profile.onboarded ? "/home" : "/onboarding" });
+      if (!userId) {
+        navigate({ to: "/auth" });
+      } else {
+        navigate({ to: profile.onboarded ? "/home" : "/onboarding" });
+      }
     }, 1400);
     return () => clearTimeout(t);
   }, [loading, userId, profile.onboarded, navigate]);
