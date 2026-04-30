@@ -20,6 +20,7 @@ import { Route as HomeRouteImport } from './routes/home'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReadIndexRouteImport } from './routes/read.index'
+import { Route as ReadBookRouteImport } from './routes/read.$book'
 import { Route as ReadBookChapterRouteImport } from './routes/read.$book.$chapter'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
@@ -80,10 +81,15 @@ const ReadIndexRoute = ReadIndexRouteImport.update({
   path: '/read/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReadBookChapterRoute = ReadBookChapterRouteImport.update({
-  id: '/read/$book/$chapter',
-  path: '/read/$book/$chapter',
+const ReadBookRoute = ReadBookRouteImport.update({
+  id: '/read/$book',
+  path: '/read/$book',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ReadBookChapterRoute = ReadBookChapterRouteImport.update({
+  id: '/$chapter',
+  path: '/$chapter',
+  getParentRoute: () => ReadBookRoute,
 } as any)
 const LovableEmailQueueProcessRoute =
   LovableEmailQueueProcessRouteImport.update({
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/read/$book': typeof ReadBookRouteWithChildren
   '/read/': typeof ReadIndexRoute
   '/read/$book/$chapter': typeof ReadBookChapterRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/read/$book': typeof ReadBookRouteWithChildren
   '/read': typeof ReadIndexRoute
   '/read/$book/$chapter': typeof ReadBookChapterRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/read/$book': typeof ReadBookRouteWithChildren
   '/read/': typeof ReadIndexRoute
   '/read/$book/$chapter': typeof ReadBookChapterRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/search'
+    | '/read/$book'
     | '/read/'
     | '/read/$book/$chapter'
     | '/lovable/email/auth/preview'
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/search'
+    | '/read/$book'
     | '/read'
     | '/read/$book/$chapter'
     | '/lovable/email/auth/preview'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/search'
+    | '/read/$book'
     | '/read/'
     | '/read/$book/$chapter'
     | '/lovable/email/auth/preview'
@@ -219,8 +231,8 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
+  ReadBookRoute: typeof ReadBookRouteWithChildren
   ReadIndexRoute: typeof ReadIndexRoute
-  ReadBookChapterRoute: typeof ReadBookChapterRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -305,12 +317,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReadIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/read/$book': {
+      id: '/read/$book'
+      path: '/read/$book'
+      fullPath: '/read/$book'
+      preLoaderRoute: typeof ReadBookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/read/$book/$chapter': {
       id: '/read/$book/$chapter'
-      path: '/read/$book/$chapter'
+      path: '/$chapter'
       fullPath: '/read/$book/$chapter'
       preLoaderRoute: typeof ReadBookChapterRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ReadBookRoute
     }
     '/lovable/email/queue/process': {
       id: '/lovable/email/queue/process'
@@ -336,6 +355,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ReadBookRouteChildren {
+  ReadBookChapterRoute: typeof ReadBookChapterRoute
+}
+
+const ReadBookRouteChildren: ReadBookRouteChildren = {
+  ReadBookChapterRoute: ReadBookChapterRoute,
+}
+
+const ReadBookRouteWithChildren = ReadBookRoute._addFileChildren(
+  ReadBookRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
@@ -347,8 +378,8 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
+  ReadBookRoute: ReadBookRouteWithChildren,
   ReadIndexRoute: ReadIndexRoute,
-  ReadBookChapterRoute: ReadBookChapterRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,

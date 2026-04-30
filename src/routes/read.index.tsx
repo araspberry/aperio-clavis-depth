@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/aperio/AppShell";
 import { BOOKS } from "@/data/bible";
@@ -29,17 +29,12 @@ export const Route = createFileRoute("/read/")({
 function ReadIndex() {
   const { lastRead } = useAperio();
   const [query, setQuery] = useState("");
-  const [selectedBookName, setSelectedBookName] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return null;
     return BOOKS.filter((b) => b.name.toLowerCase().includes(q));
   }, [query]);
-  const selectedBook = useMemo(
-    () => BOOKS.find((b) => b.name === selectedBookName) ?? null,
-    [selectedBookName],
-  );
 
   return (
     <AppShell>
@@ -83,35 +78,17 @@ function ReadIndex() {
           )}
         </div>
 
-        {selectedBook && <ChapterChooser book={selectedBook} />}
-
         {filtered ? (
           <section className="mt-6">
             <p className="text-xs uppercase tracking-wider text-muted-foreground">
               {filtered.length} match{filtered.length === 1 ? "" : "es"}
             </p>
-            <BookGrid
-              books={filtered}
-              selectedBookName={selectedBookName}
-              onSelect={setSelectedBookName}
-            />
+            <BookGrid books={filtered} />
           </section>
         ) : (
           <>
-            <Testament
-              title="New Testament"
-              groups={NT_GROUPS}
-              testament="NT"
-              selectedBookName={selectedBookName}
-              onSelect={setSelectedBookName}
-            />
-            <Testament
-              title="Old Testament"
-              groups={OT_GROUPS}
-              testament="OT"
-              selectedBookName={selectedBookName}
-              onSelect={setSelectedBookName}
-            />
+            <Testament title="New Testament" groups={NT_GROUPS} testament="NT" />
+            <Testament title="Old Testament" groups={OT_GROUPS} testament="OT" />
           </>
         )}
       </div>
@@ -123,14 +100,10 @@ function Testament({
   title,
   groups,
   testament,
-  selectedBookName,
-  onSelect,
 }: {
   title: string;
   groups: readonly string[];
   testament: "OT" | "NT";
-  selectedBookName: string | null;
-  onSelect: (bookName: string | null) => void;
 }) {
   return (
     <section className="mt-10">
@@ -147,7 +120,7 @@ function Testament({
         return (
           <div key={group} className="mt-6">
             <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">{group}</p>
-            <BookGrid books={books} selectedBookName={selectedBookName} onSelect={onSelect} />
+            <BookGrid books={books} />
           </div>
         );
       })}
@@ -155,38 +128,17 @@ function Testament({
   );
 }
 
-function BookGrid({
-  books,
-  selectedBookName,
-  onSelect,
-}: {
-  books: readonly Book[];
-  selectedBookName: string | null;
-  onSelect: (bookName: string | null) => void;
-}) {
+function BookGrid({ books }: { books: readonly Book[] }) {
   return (
     <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
       {books.map((b) => (
-        <BookCard
-          key={b.name}
-          book={b}
-          selected={selectedBookName === b.name}
-          onSelect={onSelect}
-        />
+        <BookCard key={b.name} book={b} />
       ))}
     </div>
   );
 }
 
-function BookCard({
-  book,
-  selected,
-  onSelect,
-}: {
-  book: Book;
-  selected: boolean;
-  onSelect: (bookName: string | null) => void;
-}) {
+function BookCard({ book }: { book: Book }) {
   // Single-chapter books (Obadiah, Philemon, 2/3 John, Jude) — go straight in.
   if (book.chapters === 1) {
     return (
@@ -202,46 +154,13 @@ function BookCard({
   }
 
   return (
-    <button
-      onClick={() => onSelect(selected ? null : book.name)}
-      className={`group w-full rounded-xl border bg-card px-4 py-3 text-left transition hover:border-[var(--gold)]/40 ${
-        selected ? "border-[var(--gold)]/60" : "border-border"
-      }`}
-      aria-pressed={selected}
+    <Link
+      to="/read/$book"
+      params={{ book: book.name }}
+      className="group block w-full rounded-xl border border-border bg-card px-4 py-3 text-left transition hover:border-[var(--gold)]/40"
     >
       <p className="font-serif text-base">{book.name}</p>
       <p className="text-xs text-muted-foreground">{book.chapters} chapters</p>
-    </button>
-  );
-}
-
-function ChapterChooser({ book }: { book: Book }) {
-  const navigate = useNavigate();
-
-  return (
-    <section className="mt-6 rounded-2xl border border-[var(--gold)]/30 bg-card p-4 shadow-cathedral">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="font-serif text-xl">{book.name}</h2>
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-          Choose a chapter
-        </p>
-      </div>
-      <div className="mt-3 grid grid-cols-6 gap-1.5 sm:grid-cols-8">
-        {Array.from({ length: book.chapters }, (_, i) => i + 1).map((n) => (
-          <button
-            key={n}
-            onClick={() =>
-              navigate({
-                to: "/read/$book/$chapter",
-                params: { book: book.name, chapter: String(n) },
-              })
-            }
-            className="aspect-square rounded-md border border-border/60 bg-background text-sm text-foreground/85 transition hover:border-[var(--gold)]/60 hover:bg-[var(--gold)]/10 hover:text-foreground"
-          >
-            {n}
-          </button>
-        ))}
-      </div>
-    </section>
+    </Link>
   );
 }
