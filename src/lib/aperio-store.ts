@@ -324,7 +324,8 @@ export async function setNote(ref: string, text: string) {
 
 export function recordReading(book: string, chapter: number, addMinutes = 1) {
   const today = new Date().toDateString();
-  let { streak, longestStreak, totalDays, lastReadDate, minutesToday } = state;
+  const { lastReadDate } = state;
+  let { streak, longestStreak, totalDays, minutesToday } = state;
   if (lastReadDate !== today) {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);

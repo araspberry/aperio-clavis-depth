@@ -8,6 +8,10 @@
     "build": "vite build && vite build --config vite.capacitor.config.ts",
     "build:dev": "vite build --mode development",
     "build:capacitor": "vite build --config vite.capacitor.config.ts",
+    "typecheck": "tsc --noEmit",
+    "ios:sync": "npm run build:capacitor && cap sync ios",
+    "ios:open": "cap open ios",
+    "ios:run": "npm run ios:sync && cap run ios",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write ."
