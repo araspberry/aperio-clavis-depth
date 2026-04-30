@@ -1,7 +1,7 @@
 import { Browser } from "@capacitor/browser";
 import { App, type URLOpenListenerEvent } from "@capacitor/app";
 import { supabase } from "@/integrations/supabase/client";
-import { LEGACY_NATIVE_REDIRECT_URI, NATIVE_OAUTH_CALLBACK_URI, NATIVE_OAUTH_ORIGIN, NATIVE_REDIRECT_URI } from "./native";
+import { LEGACY_NATIVE_REDIRECT_URI, NATIVE_OAUTH_ORIGIN, NATIVE_REDIRECT_URI } from "./native";
 
 let listenerAttached = false;
 
@@ -60,17 +60,22 @@ export function attachNativeAuthListener() {
 export async function startNativeOAuth(provider: "google" | "apple") {
   attachNativeAuthListener();
 
-  const state = crypto.randomUUID();
-  const params = new URLSearchParams({
+  // Ask Supabase directly for the provider URL with our custom scheme as redirect.
+  // We do NOT auto-redirect the WebView — we open the returned URL in an in-app
+  // browser so cookies/redirects work and the deep-link return can reopen the app.
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
-    redirect_uri: NATIVE_OAUTH_CALLBACK_URI,
-    state,
+    options: {
+      redirectTo: NATIVE_REDIRECT_URI,
+      skipBrowserRedirect: true,
+    },
   });
-  const url = `${NATIVE_OAUTH_ORIGIN}/~oauth/initiate?${params.toString()}`;
+  if (error || !data?.url) {
+    console.error("[native-auth] failed to get OAuth URL", error);
+    throw error ?? new Error("No OAuth URL returned");
+  }
 
-  console.info("[native-auth] opening managed OAuth URL in in-app browser");
+  console.info("[native-auth] opening Supabase OAuth URL in in-app browser", data.url);
   // SFSafariViewController on iOS, Chrome Custom Tab on Android.
-  // Crucially, it shares cookies with Safari (so existing Google session works)
-  // and iOS will dismiss it automatically when the deep-link scheme fires.
-  await Browser.open({ url, presentationStyle: "popover" });
+  await Browser.open({ url: data.url, presentationStyle: "popover" });
 }
