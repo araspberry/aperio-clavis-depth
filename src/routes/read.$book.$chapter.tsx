@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/aperio/AppShell";
 import { BOOKS } from "@/data/bible";
 import { fetchChapter, FEATURED_TRANSLATIONS } from "@/lib/bible-api";
+import { fetchClavisCommentary, getClavisQueryKey } from "@/lib/clavis-query";
 import { bumpClavis, recordReading, toggleBookmark, useAperio } from "@/lib/aperio-store";
 import { ClavisDrawer } from "@/components/aperio/ClavisDrawer";
 import { StrongsVerse } from "@/components/aperio/StrongsVerse";
@@ -25,6 +26,7 @@ function ReaderPage() {
   const { book, chapter } = useParams({ from: "/read/$book/$chapter" });
   const ch = Number(chapter);
   const { bookmarks, profile } = useAperio();
+  const queryClient = useQueryClient();
   // Map any legacy/unsupported translation (e.g. "ESV" from earlier versions) to BSB.
   const supported = FEATURED_TRANSLATIONS.some((t) => t.id === profile.translation || t.shortName === profile.translation);
   const translation = supported
@@ -49,6 +51,24 @@ function ReaderPage() {
       recordReading(book, ch, 1);
     }
   }, [book, ch]);
+
+  useEffect(() => {
+    if (!data?.verses?.length) return;
+    const chapterPassageText = data.verses.map((v) => `${v.n} ${v.text}`).join(" ");
+    void queryClient.prefetchQuery({
+      queryKey: getClavisQueryKey(book, ch, null, profile.clavisTone),
+      staleTime: 1000 * 60 * 60 * 24,
+      gcTime: 1000 * 60 * 60 * 24 * 7,
+      queryFn: () =>
+        fetchClavisCommentary({
+          book,
+          chapter: ch,
+          selectedVerse: null,
+          tone: profile.clavisTone,
+          passageText: chapterPassageText,
+        }),
+    });
+  }, [book, ch, data, profile.clavisTone, queryClient]);
 
   const bookMeta = BOOKS.find((b) => b.name === book);
   const maxCh = bookMeta?.chapters ?? 1;

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, X, BookOpen, Languages, Link2, ScrollText, NotebookPen, Loader2, Sparkles } from "lucide-react";
 import { getCommentary, toneIntro, type ClavisCommentary } from "@/data/clavis";
 import { setNote, useAperio } from "@/lib/aperio-store";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchClavisCommentary, getClavisQueryKey } from "@/lib/clavis-query";
 
 type DrawerState = "closed" | "peek" | "split" | "full";
 
@@ -45,25 +45,19 @@ export function ClavisDrawer({
 
   const enabled = state !== "closed";
   const aiQuery = useQuery({
-    queryKey: ["clavis", book, chapter, selectedVerse, profile.clavisTone],
+    queryKey: getClavisQueryKey(book, chapter, selectedVerse, profile.clavisTone),
     enabled,
     staleTime: 1000 * 60 * 60 * 24,
     gcTime: 1000 * 60 * 60 * 24 * 7,
     retry: 0,
-    queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke("clavis", {
-        body: {
-          book,
-          chapter,
-          verse: selectedVerse ?? undefined,
-          tone: profile.clavisTone,
-          passageText,
-        },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data.commentary as ClavisCommentary;
-    },
+    queryFn: () =>
+      fetchClavisCommentary({
+        book,
+        chapter,
+        selectedVerse,
+        tone: profile.clavisTone,
+        passageText,
+      }),
   });
 
   const commentary: ClavisCommentary = aiQuery.data ?? fallback;
@@ -149,10 +143,13 @@ export function ClavisDrawer({
 
           {/* Content */}
           <div className="overflow-y-auto px-5 py-5" style={{ height: `calc(${HEIGHTS[state]} - 7rem)` }}>
-            {aiQuery.isLoading && (
+            {aiQuery.isLoading && !isAI && (
               <div className="mb-4 flex items-center gap-2 text-xs text-white/60">
-                <Loader2 className="h-3 w-3 animate-spin" /> Clavis is opening this passage…
+                <Loader2 className="h-3 w-3 animate-spin" /> Loading live commentary…
               </div>
+            )}
+            {aiQuery.isFetching && isAI && (
+              <div className="mb-4 text-xs text-white/50">Refreshing live commentary…</div>
             )}
             {aiQuery.error && (
               <div className="mb-4 rounded-lg border border-amber-400/30 bg-amber-400/10 p-3 text-xs text-amber-100">
