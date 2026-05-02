@@ -93,7 +93,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { book, chapter, verse, tone = "balanced" } = await req.json();
+    const { book, chapter, verse, tone = "balanced", passageText } = await req.json();
     if (!book || !chapter) {
       return new Response(JSON.stringify({ error: "book and chapter are required" }), {
         status: 400,
@@ -115,13 +115,33 @@ serve(async (req) => {
       tonePrompt(tone as Tone),
     ].join(" ");
 
-    // Note: do NOT include the passage text verbatim — Gemini may block with
-    // finish_reason "RECITATION" when scripture is quoted back. Reference by citation only.
-    const userPrompt = [
-      `Generate Clavis commentary on ${ref}.`,
-      verse ? `\nFocus especially on verse ${verse}, but situate it in the chapter.` : "",
-      "\nDo not quote the passage verbatim in your commentary — paraphrase or reference by clause.",
-    ].join("");
+    // Note: do NOT quote the passage text verbatim at length — Gemini may block with
+    // finish_reason "RECITATION" when scripture is quoted back. Use it only as grounding.
+    const groundingBlock = passageText
+      ? `\n\nGrounding text (for your reference only — do NOT quote at length, paraphrase or reference by clause):\n"""${String(passageText).slice(0, 1200)}"""`
+      : "";
+
+    const userPrompt = verse
+      ? [
+          `Generate Clavis verse-level micro-commentary on ${ref}.`,
+          `\n\nThis is a SINGLE-VERSE request. Your entire commentary MUST focus on ${book} ${chapter}:${verse} specifically.`,
+          `\nDO NOT summarize the whole chapter. DO NOT drift into chapter-level overview. Stay anchored to this one verse.`,
+          `\n\nRequirements for each field:`,
+          `\n- overview: the central claim or main point of verse ${verse} itself (not the chapter).`,
+          `\n- theology: the doctrinal significance of verse ${verse} read in its context.`,
+          `\n- context: the immediate literary and historical context surrounding verse ${verse} (what comes just before and after, the setting).`,
+          `\n- application: practical meaning anchored specifically to what verse ${verse} says.`,
+          `\n\nLexicon entries must be drawn from words actually present in verse ${verse}.`,
+          `\nCross-references should illuminate verse ${verse} specifically.`,
+          `\n\nDo not quote the verse verbatim — paraphrase or reference by clause.`,
+          groundingBlock,
+        ].join("")
+      : [
+          `Generate Clavis commentary on ${ref}.`,
+          `\nProvide chapter-level commentary covering the whole chapter's flow and themes.`,
+          `\nDo not quote the passage verbatim — paraphrase or reference by clause.`,
+          groundingBlock,
+        ].join("");
 
     const callModel = (model: string) =>
       fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
