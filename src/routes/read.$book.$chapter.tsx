@@ -81,7 +81,7 @@ function ReaderPage() {
 
         {/* Scripture */}
         <article
-          className="px-6 pb-40 pt-8 transition-all"
+          className="touch-pan-y px-6 pb-40 pt-8 transition-all"
           style={{
             paddingBottom: drawer === "split" ? "55vh" : drawer === "full" ? "92vh" : drawer === "peek" ? "25vh" : "10rem",
           }}
@@ -114,10 +114,17 @@ function ReaderPage() {
                       </span>
                     )}
                     <span
-                      onClick={() => setSelectedVerse(isSelected ? null : v.n)}
-                      className={`cursor-pointer transition-colors ${isSelected ? "rounded-md bg-[var(--gold)]/15 px-1" : "hover:bg-[var(--gold)]/5"}`}
+                      className={`transition-colors ${isSelected ? "rounded-md bg-[var(--gold)]/15 px-1" : ""}`}
                     >
-                      <sup className="verse-num">{v.n}</sup>
+                      <button
+                        type="button"
+                        data-verse-interactive="true"
+                        onClick={() => setSelectedVerse(isSelected ? null : v.n)}
+                        className="touch-pan-y inline rounded-sm focus:outline-none"
+                        aria-label={`Select verse ${v.n}`}
+                      >
+                        <sup className="verse-num">{v.n}</sup>
+                      </button>
                       {v.text}{" "}
                       {isBookmarked && <span className="text-xs text-[var(--gold-deep)]">★ </span>}
                     </span>

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation, useParams } from "@tanstack/react-router";
 import { AppShell } from "@/components/aperio/AppShell";
 import { BOOKS } from "@/data/bible";
 import { ArrowLeft } from "lucide-react";
@@ -10,8 +10,11 @@ export const Route = createFileRoute("/read/$book")({
 
 function ChapterPickerPage() {
   const { book } = useParams({ from: "/read/$book" });
+  const { pathname } = useLocation();
   const bookMeta =
     BOOKS.find((b) => b.name === book) ?? BOOKS.find((b) => b.name === decodeURIComponent(book));
+  const pathSegments = pathname.split("/").filter(Boolean);
+  const isChapterRoute = pathSegments.length > 2;
 
   if (!bookMeta) {
     return (
@@ -24,6 +27,10 @@ function ChapterPickerPage() {
         </div>
       </AppShell>
     );
+  }
+
+  if (isChapterRoute) {
+    return <Outlet />;
   }
 
   return (

@@ -234,3 +234,8 @@ body {
 body {
   overscroll-behavior-y: none;
 }
+
+.touch-pan-y,
+[data-verse-interactive="true"] {
+  touch-action: pan-y;
+}
