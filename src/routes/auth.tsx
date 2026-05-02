@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { isNative } from "@/lib/native";
 import { startNativeOAuth } from "@/lib/native-auth";
+import { isGuestModeEnabled, startGuestMode } from "@/lib/aperio-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, ArrowLeft, ArrowRight, Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
@@ -28,6 +29,11 @@ type Step = 0 | 1 | 2;
 
 function AuthPage() {
   const navigate = useNavigate();
+  const localGuestReady =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname === "::1");
   const [mode, setMode] = useState<Mode>("signin");
   const [step, setStep] = useState<Step>(0);
   const [direction, setDirection] = useState<1 | -1>(1);
@@ -41,13 +47,18 @@ function AuthPage() {
   useEffect(() => {
     let active = true;
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (active && session?.user) navigate({ to: "/home" });
+      if (active && (session?.user || isGuestModeEnabled())) navigate({ to: "/home" });
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session?.user) navigate({ to: "/home" });
+      if (session?.user || isGuestModeEnabled()) navigate({ to: "/home" });
     });
     return () => { active = false; sub.subscription.unsubscribe(); };
   }, [navigate]);
+
+  const continueLocally = () => {
+    startGuestMode();
+    navigate({ to: "/onboarding" });
+  };
 
   const goNext = (next: Step) => { setDirection(1); setStep(next); setError(null); setInfo(null); };
   const goBack = (prev: Step) => { setDirection(-1); setStep(prev); setError(null); setInfo(null); };
@@ -112,6 +123,22 @@ function AuthPage() {
         // The deep-link listener in native-auth.ts will set the session when the callback returns.
         await startNativeOAuth("google");
         // Keep busy spinner — listener will trigger onAuthStateChange and navigate to /home.
+        return;
+      }
+      const isLocalDev =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1" ||
+        window.location.hostname === "::1";
+      if (isLocalDev) {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: window.location.origin,
+          },
+        });
+        if (error) {
+          throw error;
+        }
         return;
       }
       const result = await lovable.auth.signInWithOAuth("google", {
@@ -226,6 +253,15 @@ function AuthPage() {
                   )}
                   <span>Continue with Google</span>
                 </button>
+
+                {localGuestReady && (
+                  <button
+                    onClick={continueLocally}
+                    className="mt-3 flex w-full items-center justify-center gap-3 rounded-2xl border border-[var(--gold)]/25 bg-[var(--gold)]/10 px-5 py-4 text-sm text-[var(--gold-soft)] transition hover:border-[var(--gold)]/40 hover:bg-[var(--gold)]/15"
+                  >
+                    <span>Continue locally without sync</span>
+                  </button>
+                )}
               </motion.div>
             )}
 

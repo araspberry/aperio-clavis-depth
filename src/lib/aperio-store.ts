@@ -53,6 +53,8 @@ export interface AppState {
 }
 
 const STORAGE_KEY = "aperio:v1";
+const DEV_GUEST_KEY = "aperio:dev-guest";
+const DEV_GUEST_USER_ID = "dev-guest";
 
 const defaultState: AppState = {
   profile: {
@@ -93,12 +95,69 @@ let state: AppState = defaultState;
 let initialized = false;
 const listeners = new Set<() => void>();
 
+function isBrowser() {
+  return typeof window !== "undefined";
+}
+
+function isLocalDevHost() {
+  if (!isBrowser()) return false;
+  const host = window.location.hostname;
+  return host === "localhost" || host === "127.0.0.1" || host === "::1";
+}
+
+export function isGuestModeEnabled() {
+  return isLocalDevHost() && isBrowser() && window.localStorage.getItem(DEV_GUEST_KEY) === "1";
+}
+
+export function startGuestMode() {
+  if (!isLocalDevHost() || !isBrowser()) return;
+  window.localStorage.setItem(DEV_GUEST_KEY, "1");
+}
+
+function clearGuestMode() {
+  if (!isBrowser()) return;
+  window.localStorage.removeItem(DEV_GUEST_KEY);
+  window.localStorage.removeItem(STORAGE_KEY);
+}
+
+function readLocalState(): AppState | null {
+  if (!isBrowser()) return null;
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<AppState>;
+    return {
+      ...defaultState,
+      ...parsed,
+      profile: { ...defaultState.profile, ...parsed.profile },
+      lastRead: { ...defaultState.lastRead, ...parsed.lastRead },
+      loading: false,
+      userId: DEV_GUEST_USER_ID,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function persistLocalState(next: AppState = state) {
+  if (!isGuestModeEnabled() || !isBrowser()) return;
+  window.localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      ...next,
+      loading: false,
+      userId: DEV_GUEST_USER_ID,
+    }),
+  );
+}
+
 function emit() {
   listeners.forEach((l) => l());
 }
 
 function setStateInternal(patch: Partial<AppState>) {
   state = { ...state, ...patch };
+  persistLocalState(state);
   emit();
 }
 
@@ -196,7 +255,12 @@ async function loadAll(userId: string) {
 }
 
 function clearAll() {
-  state = { ...defaultState, loading: false };
+  state = {
+    ...defaultState,
+    loading: false,
+    userId: isGuestModeEnabled() ? DEV_GUEST_USER_ID : null,
+  };
+  persistLocalState(state);
   emit();
 }
 
@@ -207,6 +271,14 @@ export function initAuthSync() {
   supabase.auth.onAuthStateChange((_event, session) => {
     if (session?.user) {
       void loadAll(session.user.id);
+    } else if (isGuestModeEnabled()) {
+      state = readLocalState() ?? {
+        ...defaultState,
+        loading: false,
+        userId: DEV_GUEST_USER_ID,
+      };
+      persistLocalState(state);
+      emit();
     } else {
       clearAll();
     }
@@ -214,6 +286,15 @@ export function initAuthSync() {
 
   void supabase.auth.getSession().then(({ data: { session } }) => {
     if (session?.user) void loadAll(session.user.id);
+    else if (isGuestModeEnabled()) {
+      state = readLocalState() ?? {
+        ...defaultState,
+        loading: false,
+        userId: DEV_GUEST_USER_ID,
+      };
+      persistLocalState(state);
+      emit();
+    }
     else setStateInternal({ loading: false });
   });
 }
@@ -226,9 +307,21 @@ export function setState(patch: Partial<AppState> | ((s: AppState) => Partial<Ap
 
 export async function setProfile(patch: Partial<UserProfile>) {
   state = { ...state, profile: { ...state.profile, ...patch } };
+  persistLocalState(state);
   emit();
 
   let userId = state.userId;
+  if (userId === DEV_GUEST_USER_ID || (!userId && isGuestModeEnabled())) {
+    state = {
+      ...state,
+      userId: DEV_GUEST_USER_ID,
+      loading: false,
+      profile: { ...state.profile, ...patch },
+    };
+    persistLocalState(state);
+    emit();
+    return;
+  }
   if (!userId) {
     const { data: { session }, error } = await supabase.auth.getSession();
     if (error) throw error;
@@ -253,6 +346,25 @@ export async function setProfile(patch: Partial<UserProfile>) {
 }
 
 export async function addPrayer(p: Omit<PrayerEntry, "id" | "date">) {
+  if (state.userId === DEV_GUEST_USER_ID || (!state.userId && isGuestModeEnabled())) {
+    const entry: PrayerEntry = {
+      id: crypto.randomUUID(),
+      date: new Date().toISOString(),
+      text: p.text,
+      category: p.category,
+      status: p.status,
+      scripture: p.scripture,
+      forWhom: p.forWhom,
+    };
+    state = {
+      ...state,
+      userId: DEV_GUEST_USER_ID,
+      prayers: [entry, ...state.prayers],
+    };
+    persistLocalState(state);
+    emit();
+    return entry;
+  }
   if (!state.userId) return null;
   const { data, error } = await supabase
     .from("prayers")
@@ -278,7 +390,9 @@ export async function updatePrayer(id: string, patch: Partial<PrayerEntry>) {
     ...state,
     prayers: state.prayers.map((p) => (p.id === id ? { ...p, ...patch } : p)),
   };
+  persistLocalState(state);
   emit();
+  if (state.userId === DEV_GUEST_USER_ID) return;
   if (!state.userId) return;
   const row: Record<string, any> = {};
   if (patch.text !== undefined) row.text = patch.text;
@@ -297,7 +411,9 @@ export async function toggleBookmark(ref: string) {
     ...state,
     bookmarks: has ? state.bookmarks.filter((b) => b !== ref) : [...state.bookmarks, ref],
   };
+  persistLocalState(state);
   emit();
+  if (state.userId === DEV_GUEST_USER_ID) return;
   if (!state.userId) return;
   if (has) {
     await supabase.from("bookmarks").delete().eq("user_id", state.userId).eq("reference", ref);
@@ -311,7 +427,9 @@ export async function setNote(ref: string, text: string) {
   if (text.trim()) notes[ref] = text;
   else delete notes[ref];
   state = { ...state, notes };
+  persistLocalState(state);
   emit();
+  if (state.userId === DEV_GUEST_USER_ID) return;
   if (!state.userId) return;
   if (text.trim()) {
     await supabase
@@ -344,8 +462,9 @@ export function recordReading(book: string, chapter: number, addMinutes = 1) {
     totalDays,
     lastReadDate: today,
   };
+  persistLocalState(state);
   emit();
-  if (state.userId) {
+  if (state.userId && state.userId !== DEV_GUEST_USER_ID) {
     void supabase.from("profiles").update({
       last_read_book: book,
       last_read_chapter: chapter,
@@ -361,13 +480,24 @@ export function recordReading(book: string, chapter: number, addMinutes = 1) {
 export function bumpClavis() {
   const next = state.clavisSessions + 1;
   state = { ...state, clavisSessions: next };
+  persistLocalState(state);
   emit();
-  if (state.userId) {
+  if (state.userId && state.userId !== DEV_GUEST_USER_ID) {
     void supabase.from("profiles").update({ clavis_sessions: next }).eq("id", state.userId);
   }
 }
 
 export async function resetAll() {
+  if (state.userId === DEV_GUEST_USER_ID || isGuestModeEnabled()) {
+    state = {
+      ...defaultState,
+      loading: false,
+      userId: DEV_GUEST_USER_ID,
+    };
+    persistLocalState(state);
+    emit();
+    return;
+  }
   if (!state.userId) return;
   const uid = state.userId;
   await Promise.all([
@@ -383,6 +513,12 @@ export async function resetAll() {
 }
 
 export async function signOut() {
+  if (state.userId === DEV_GUEST_USER_ID || isGuestModeEnabled()) {
+    clearGuestMode();
+    state = { ...defaultState, loading: false, userId: null };
+    emit();
+    return;
+  }
   await supabase.auth.signOut();
 }
 
