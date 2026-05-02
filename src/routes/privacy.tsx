@@ -45,7 +45,7 @@ function PrivacyPage() {
           </h1>
           <div className="text-sm text-muted-foreground space-y-1">
             <p>Effective Date: April 24, 2026</p>
-            <p>Last Updated: April 24, 2026</p>
+            <p>Last Updated: May 1, 2026</p>
           </div>
           <blockquote className="mt-6 border-l-2 border-primary/40 pl-4 italic text-muted-foreground">
             "Your word is a lamp to my feet and a light to my path." — Psalm
@@ -66,8 +66,8 @@ function PrivacyPage() {
             <p>
               Aperio is a faith-based Bible study application powered by
               Clavis AI, designed to help users engage deeply with Scripture
-              through AI-powered commentary, prayer journaling, reading
-              plans, and scholarly tools.
+              through AI-powered commentary, prayer journaling, study notes,
+              bookmarks, and reading tools.
             </p>
             <p className="italic text-muted-foreground">
               Your faith data — your prayers, your annotations, your
@@ -86,7 +86,7 @@ function PrivacyPage() {
             <h3 className="font-semibold mt-4">2.1 Information You Provide to Us</h3>
             <p>When you create an account and complete the onboarding process, we collect:</p>
             <ul className="list-disc pl-6 space-y-1">
-              <li>Account credentials: email address and password (passwords are encrypted using bcrypt and are never stored in plain text)</li>
+              <li>Account credentials: email address and password (passwords are handled by our authentication provider and are not stored in plain text by the app)</li>
               <li>Personal identification: first name, last name, date of birth, and gender</li>
               <li>Location information: city, state, and country</li>
               <li>Professional context: your occupation or student status</li>
@@ -100,8 +100,6 @@ function PrivacyPage() {
               <li>Prayer journal entries — including prayer text, categories, intercession names, and testimony records</li>
               <li>Personal Bible annotations and verse notes</li>
               <li>Bookmarked verses and chapters</li>
-              <li>Reading plan progress and daily reflection responses</li>
-              <li>Lecture Builder content (Academic Mode users)</li>
               <li>Reading session history and daily goal progress</li>
             </ul>
             <p>This content is created by you, stored securely for your use, and is never shared with other users or third parties without your explicit consent.</p>
@@ -125,13 +123,12 @@ function PrivacyPage() {
               <li>Personalize your Aperio experience based on your onboarding preferences</li>
               <li>Enable Clavis AI to deliver relevant commentary, search results, and scripture suggestions tailored to your reading tone and study level</li>
               <li>Track your reading progress and prayer streaks</li>
-              <li>Deliver daily scripture and Clavis-curated reading plan recommendations</li>
+              <li>Restore your last-read context and in-app study preferences across sessions</li>
             </ul>
 
             <h3 className="font-semibold mt-4">3.2 To Communicate With You</h3>
             <ul className="list-disc pl-6 space-y-1">
               <li>Send account-related notifications such as password resets and security alerts</li>
-              <li>Deliver daily reading reminders and prayer notifications (only if you have enabled these in your settings)</li>
               <li>Respond to your support requests</li>
             </ul>
 
@@ -141,7 +138,6 @@ function PrivacyPage() {
 
             <h3 className="font-semibold mt-4">3.4 For Business and Legal Purposes</h3>
             <ul className="list-disc pl-6 space-y-1">
-              <li>Process subscription payments through our payment processor</li>
               <li>Comply with applicable laws and legal obligations</li>
               <li>Protect the rights, property, and safety of Aperio, our users, and the public</li>
             </ul>
@@ -158,9 +154,9 @@ function PrivacyPage() {
             <p>We take the security of your personal information seriously, particularly your faith-related data. We implement the following measures:</p>
             <ul className="list-disc pl-6 space-y-1">
               <li><strong>Encryption in transit:</strong> All data transmitted between your device and our servers is encrypted using HTTPS and TLS protocols</li>
-              <li><strong>Encryption at rest:</strong> Your data is stored on DigitalOcean's managed PostgreSQL database infrastructure, which provides encryption at rest</li>
-              <li><strong>Password security:</strong> Passwords are never stored in plain text. We use bcrypt hashing with a cost factor of 12, which is the industry standard for secure password storage</li>
-              <li><strong>Access controls:</strong> Only authorized Aperio systems can access your data. No individual employee has access to your prayer journal or personal annotations</li>
+              <li><strong>Encryption at rest:</strong> Data stored by our backend providers is protected using their managed storage and encryption controls</li>
+              <li><strong>Password security:</strong> Authentication is handled by our backend identity provider. Aperio does not store plain-text passwords in the app</li>
+              <li><strong>Access controls:</strong> Access to stored data is limited to authorized Aperio systems and configured backend services needed to operate the app</li>
               <li><strong>Rate limiting:</strong> We implement rate limiting on all API endpoints to prevent unauthorized access and abuse</li>
             </ul>
             <p>While we implement these safeguards, no method of electronic storage or internet transmission is 100% secure. We cannot guarantee absolute security. If you become aware of a security concern, please contact us immediately at privacy@aperioapp.com.</p>
@@ -172,9 +168,8 @@ function PrivacyPage() {
 
             <h3 className="font-semibold mt-4">6.1 Service Providers</h3>
             <ul className="list-disc pl-6 space-y-1">
-              <li>DigitalOcean — cloud infrastructure and database hosting</li>
+              <li>Supabase — authentication, database storage, and server-side functions</li>
               <li>Anthropic — AI processing for Clavis commentary and search features</li>
-              <li>Stripe — payment processing for Pro and Scholar subscriptions (Stripe does not have access to your faith data or personal annotations)</li>
               <li>AO Lab — Bible scripture content delivery via their Free Use Bible API (no user data is shared with AO Lab)</li>
             </ul>
 
@@ -185,23 +180,20 @@ function PrivacyPage() {
             <p>If Aperio is involved in a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction. We will notify you before your personal information is transferred and becomes subject to a different privacy policy.</p>
 
             <h3 className="font-semibold mt-4">6.4 With Your Consent</h3>
-            <p>We may share your information with third parties when you have given us explicit consent to do so, such as sharing a reading plan or lecture with other Aperio users.</p>
+            <p>We may share your information with third parties when you have given us explicit consent to do so, such as when you ask us to assist with an account-specific support request.</p>
           </Section>
 
           <Section title="7. Your Rights and Choices">
             <h3 className="font-semibold mt-4">7.1 Access and Portability</h3>
-            <p>You have the right to access the personal information we hold about you. You can export your data — including your prayer journal, annotations, and reading history — directly from the Aperio app under Profile &gt; Settings &gt; Privacy &amp; Data &gt; Export My Data.</p>
+            <p>You have the right to request access to the personal information we hold about you. At this time, Aperio does not provide a self-service in-app export screen. To request an export of your account data, please contact us at privacy@aperioapp.com.</p>
 
             <h3 className="font-semibold mt-4">7.2 Correction</h3>
-            <p>You can update or correct your personal information at any time through the Profile screen in the app. This includes your name, location, denomination, and all other onboarding preferences.</p>
+            <p>You can update or correct some of your personal information through the app during onboarding and profile-related flows. If you need help correcting account data that is not currently editable in the app, contact us at privacy@aperioapp.com.</p>
 
             <h3 className="font-semibold mt-4">7.3 Deletion</h3>
-            <p>You have the right to request deletion of your account and all associated data. You can do this by going to Profile &gt; Settings &gt; Privacy &amp; Data &gt; Delete My Account. Upon deletion, we will permanently remove your account, prayer journal, annotations, reading history, and all personally identifiable information within 30 days. Anonymized, aggregated data derived from your usage may be retained for analytical purposes.</p>
+            <p>You have the right to request deletion of your account and associated personal data. Aperio does not currently provide an in-app account deletion control. To request deletion, contact us at privacy@aperioapp.com. We will review and process verified deletion requests within a reasonable period, subject to any legal retention obligations.</p>
 
-            <h3 className="font-semibold mt-4">7.4 Notification Preferences</h3>
-            <p>You can manage your notification preferences at any time through Profile &gt; Settings &gt; Notifications. You may opt out of daily reading reminders, prayer reminders, and other push notifications while retaining access to the app.</p>
-
-            <h3 className="font-semibold mt-4">7.5 Withdrawing Consent</h3>
+            <h3 className="font-semibold mt-4">7.4 Withdrawing Consent</h3>
             <p>Where we process your data based on consent, you may withdraw that consent at any time. Withdrawal of consent does not affect the lawfulness of processing based on consent before withdrawal.</p>
           </Section>
 
@@ -211,8 +203,7 @@ function PrivacyPage() {
               <li>Account data is retained for the lifetime of your account</li>
               <li>Prayer journal entries, annotations, and reading history are retained indefinitely while your account is active, because these records represent your personal spiritual journey and have ongoing value to you</li>
               <li>Clavis usage logs are retained for 90 days for rate limiting and service improvement purposes</li>
-              <li>Payment records are retained for 7 years as required by applicable tax and financial regulations</li>
-              <li>Upon account deletion, personally identifiable data is permanently removed within 30 days</li>
+              <li>Upon a verified deletion request, personally identifiable data is removed within a reasonable operational timeframe unless retention is required by law</li>
             </ul>
           </Section>
 
@@ -231,16 +222,12 @@ function PrivacyPage() {
             <p>We do not use any third-party advertising networks, remarketing services, or behavioral tracking tools. Your activity within Aperio is not tracked for advertising purposes — ever.</p>
           </Section>
 
-          <Section title="12. Aperio Access — Sponsorship Program">
-            <p>Aperio Access is our program that allows Pro subscribers to sponsor free access for believers in developing nations. When you participate in the Aperio Access program as a sponsor, your sponsorship is anonymous — we do not share your identity with sponsored users, and sponsored users' identities are not shared with sponsors. The program counter displayed on our website reflects aggregate totals only.</p>
-          </Section>
-
-          <Section title="13. Changes to This Privacy Policy">
+          <Section title="12. Changes to This Privacy Policy">
             <p>We may update this Privacy Policy from time to time to reflect changes in our practices, technology, legal requirements, or for other operational reasons. When we make material changes, we will notify you through the app and update the "Last Updated" date at the top of this document.</p>
             <p>We encourage you to review this Privacy Policy periodically. Your continued use of Aperio after any changes constitutes your acceptance of the updated policy.</p>
           </Section>
 
-          <Section title="14. Contact Us">
+          <Section title="13. Contact Us">
             <p>If you have any questions, concerns, or requests regarding this Privacy Policy or the way we handle your personal information, please contact us:</p>
             <div className="not-prose rounded-lg border border-border bg-muted/30 p-4 text-sm">
               <p className="font-semibold">Aperio Privacy Team</p>

@@ -72,3 +72,11 @@ The iOS app registers both URL schemes used by the code:
 - `app.aperio://auth/callback`
 
 Supabase and any OAuth provider configuration must allow the active native redirect URI before native sign-in will complete.
+
+Current production direction:
+
+- Web and native account data should continue to use the Lovable.dev and Supabase-backed auth flow.
+- Localhost guest mode is for development and QA only. It is useful when local redirect allow-lists are unavailable, but it should not replace the real sign-in path for production users.
+- For the native app, keep the Lovable/Supabase redirect allow-list aligned with:
+  - `https://aperio-clavis-depth.lovable.app/**`
+  - `com.aperio.app://auth/callback`

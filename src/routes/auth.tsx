@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +29,7 @@ type Step = 0 | 1 | 2;
 
 function AuthPage() {
   const navigate = useNavigate();
+  const search = useSearch({ from: "/auth" });
   const localGuestReady =
     typeof window !== "undefined" &&
     (window.location.hostname === "localhost" ||
@@ -43,17 +44,18 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const postAuthTarget = resolvePostAuthTarget(search.redirect);
 
   useEffect(() => {
     let active = true;
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (active && (session?.user || isGuestModeEnabled())) navigate({ to: "/home" });
+      if (active && (session?.user || isGuestModeEnabled())) navigate({ to: postAuthTarget });
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session?.user || isGuestModeEnabled()) navigate({ to: "/home" });
+      if (session?.user || isGuestModeEnabled()) navigate({ to: postAuthTarget });
     });
     return () => { active = false; sub.subscription.unsubscribe(); };
-  }, [navigate]);
+  }, [navigate, postAuthTarget]);
 
   const continueLocally = () => {
     startGuestMode();
@@ -150,7 +152,7 @@ function AuthPage() {
         return;
       }
       if (result.redirected) return;
-      navigate({ to: "/home" });
+      navigate({ to: postAuthTarget });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Google sign-in failed.");
       setBusy(false);
@@ -364,6 +366,21 @@ function AuthPage() {
       </div>
     </div>
   );
+}
+
+function resolvePostAuthTarget(redirect?: string) {
+  if (!redirect) return "/home";
+  if (typeof window === "undefined") return "/home";
+
+  try {
+    const url = new URL(redirect, window.location.origin);
+    if (url.origin !== window.location.origin || !url.pathname.startsWith("/")) {
+      return "/home";
+    }
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return "/home";
+  }
 }
 
 function ModeCard({
