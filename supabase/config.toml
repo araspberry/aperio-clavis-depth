@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.clavis-search]
 verify_jwt = false
+
+[functions.bible-text]
+verify_jwt = false
