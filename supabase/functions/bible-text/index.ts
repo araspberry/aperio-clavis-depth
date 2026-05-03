@@ -123,7 +123,12 @@ async function fetchChapter(bibleId: string, book: string, chapter: number) {
 
   const flush = () => {
     if (!currentVerseN) return;
-    verses.push({ n: currentVerseN, text: currentText.replace(/\s+/g, " ").trim() });
+    let text = currentText.replace(/\s+/g, " ").trim();
+    // API.Bible emits the verse number as a text node inside the verse tag.
+    // Strip any leading occurrence(s) of the verse number plus optional punctuation/pilcrow.
+    const numStr = String(currentVerseN);
+    text = text.replace(new RegExp(`^(?:${numStr}\\s*[¶\\.\\-:)\\]]?\\s*)+`), "").trim();
+    verses.push({ n: currentVerseN, text });
     lastVerseN = currentVerseN;
     currentVerseN = 0;
     currentText = "";
