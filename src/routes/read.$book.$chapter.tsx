@@ -222,7 +222,7 @@ function ReaderPage() {
             </div>
           )}
           {data && (
-            <div className="scripture mt-8 text-[1.15rem] text-foreground/90">
+            <div className="scripture mt-8 text-[1.35rem] text-foreground/90">
               {data.verses.map((v) => {
                 const heading = data.headings.find((h) => h.afterVerse === v.n - 1);
                 const ref = `${book} ${ch}:${v.n}`;
