@@ -144,7 +144,7 @@ export function ClavisDrawer({
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-2">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--gold-soft)]/80">{toneIntro(profile.clavisTone)}</span>
+              <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--gold-soft)]/80">Study Center</span>
               <span className="text-[10px] text-white/40">·</span>
               <span className="text-[10px] text-white/60">
                 {book} {chapter}

@@ -303,9 +303,8 @@ function ReaderPage() {
         {drawer === "closed" && (
           <button
             onClick={() => openClavis()}
-            className="fixed bottom-24 left-1/2 z-30 -translate-x-1/2 inline-flex items-center gap-2 rounded-full bg-gradient-gold px-6 py-3 text-sm font-semibold text-[var(--navy-deep)] shadow-gold transition hover:scale-[1.02]"
+            className="fixed bottom-24 left-1/2 z-30 -translate-x-1/2 inline-flex items-center rounded-full bg-gradient-gold px-6 py-2.5 text-sm font-semibold text-[var(--navy-deep)] shadow-gold transition hover:scale-[1.02]"
           >
-            <KeyRound className="h-4 w-4" />
             Open Clavis
           </button>
         )}
