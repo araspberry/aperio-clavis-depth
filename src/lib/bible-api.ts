@@ -2,8 +2,6 @@
 // All API.Bible requests go through the server so the API key stays private,
 // and both web + native (Capacitor iOS) hit the same hosted endpoint.
 
-import { supabase } from "@/integrations/supabase/client";
-
 export interface ApiVerse {
   n: number;
   text: string;
@@ -54,22 +52,12 @@ let availableTranslationsPromise: Promise<ApiTranslation[]> | null = null;
 let cachedTranslations: ApiTranslation[] = FEATURED_TRANSLATIONS;
 
 async function loadAvailableTranslations(): Promise<ApiTranslation[]> {
-  const { data, error } = await supabase.functions.invoke<BibleListResponse>("bible-text", {
-    method: "GET",
-    body: undefined,
-    // Pass action via query string by appending to functionName isn't supported,
-    // so we call fetch directly below.
+  const res = await fetch(`${FUNCTIONS_URL}?action=bibles`, {
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
   });
-  // Fallback to direct fetch with query string (functions.invoke is POST by default).
-  if (error || !data) {
-    const res = await fetch(`${FUNCTIONS_URL}?action=bibles`, {
-      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
-    });
-    if (!res.ok) throw new Error(`Could not load Bible list (${res.status})`);
-    const payload = (await res.json()) as BibleListResponse;
-    return shapeTranslations(payload.bibles ?? []);
-  }
-  return shapeTranslations(data.bibles ?? []);
+  if (!res.ok) throw new Error(`Could not load Bible list (${res.status})`);
+  const payload = (await res.json()) as BibleListResponse;
+  return shapeTranslations(payload.bibles ?? []);
 }
 
 function shapeTranslations(
