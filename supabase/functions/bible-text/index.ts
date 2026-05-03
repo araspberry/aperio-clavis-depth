@@ -18,6 +18,7 @@ const corsHeaders = {
 };
 
 const API_BASE = "https://api.scripture.api.bible/v1";
+const API_BASE_FALLBACK = "https://rest.api.bible/v1";
 
 // USFM book ID map. API.Bible expects e.g. "GEN", "1CO".
 const BOOK_USFM: Record<string, string> = {
@@ -54,10 +55,15 @@ function apiKeyOrFail() {
 }
 
 async function listBibles() {
-  const res = await fetch(`${API_BASE}/bibles?language=eng`, {
-    headers: { "api-key": apiKeyOrFail() },
-  });
-  if (!res.ok) throw new Error(`API.Bible /bibles failed (${res.status})`);
+  const key = apiKeyOrFail();
+  let res = await fetch(`${API_BASE}/bibles?language=eng`, { headers: { "api-key": key } });
+  if (!res.ok) {
+    res = await fetch(`${API_BASE_FALLBACK}/bibles?language=eng`, { headers: { "api-key": key } });
+  }
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`API.Bible /bibles failed (${res.status}): ${body.slice(0, 200)}`);
+  }
   const payload = await res.json();
   const bibles = (payload.data ?? []).map((b: any) => ({
     id: b.id,
@@ -88,6 +94,7 @@ async function fetchChapter(bibleId: string, book: string, chapter: number) {
   if (!usfm) throw new Error(`Unsupported book: ${book}`);
   const chapterId = `${usfm}.${chapter}`;
 
+  const key = apiKeyOrFail();
   const url = new URL(`${API_BASE}/bibles/${bibleId}/chapters/${chapterId}`);
   url.searchParams.set("content-type", "json");
   url.searchParams.set("include-notes", "false");
@@ -96,7 +103,11 @@ async function fetchChapter(bibleId: string, book: string, chapter: number) {
   url.searchParams.set("include-verse-numbers", "true");
   url.searchParams.set("include-verse-spans", "false");
 
-  const res = await fetch(url, { headers: { "api-key": apiKeyOrFail() } });
+  let res = await fetch(url, { headers: { "api-key": key } });
+  if (!res.ok && res.status === 401) {
+    const fallback = new URL(url.toString().replace(API_BASE, API_BASE_FALLBACK));
+    res = await fetch(fallback, { headers: { "api-key": key } });
+  }
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`API.Bible chapter fetch failed (${res.status}): ${text.slice(0, 200)}`);
