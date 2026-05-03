@@ -21,7 +21,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReadIndexRouteImport } from './routes/read.index'
 import { Route as ReadBookRouteImport } from './routes/read.$book'
+import { Route as ReadBookIndexRouteImport } from './routes/read.$book.index'
 import { Route as ReadBookChapterRouteImport } from './routes/read.$book.$chapter'
+import { Route as ApiBibleChapterRouteImport } from './routes/api.bible.chapter'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
@@ -86,10 +88,20 @@ const ReadBookRoute = ReadBookRouteImport.update({
   path: '/read/$book',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReadBookIndexRoute = ReadBookIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ReadBookRoute,
+} as any)
 const ReadBookChapterRoute = ReadBookChapterRouteImport.update({
   id: '/$chapter',
   path: '/$chapter',
   getParentRoute: () => ReadBookRoute,
+} as any)
+const ApiBibleChapterRoute = ApiBibleChapterRouteImport.update({
+  id: '/api/bible/chapter',
+  path: '/api/bible/chapter',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LovableEmailQueueProcessRoute =
   LovableEmailQueueProcessRouteImport.update({
@@ -121,7 +133,9 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/read/$book': typeof ReadBookRouteWithChildren
   '/read/': typeof ReadIndexRoute
+  '/api/bible/chapter': typeof ApiBibleChapterRoute
   '/read/$book/$chapter': typeof ReadBookChapterRoute
+  '/read/$book/': typeof ReadBookIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -137,9 +151,10 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
-  '/read/$book': typeof ReadBookRouteWithChildren
   '/read': typeof ReadIndexRoute
+  '/api/bible/chapter': typeof ApiBibleChapterRoute
   '/read/$book/$chapter': typeof ReadBookChapterRoute
+  '/read/$book': typeof ReadBookIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -158,7 +173,9 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/read/$book': typeof ReadBookRouteWithChildren
   '/read/': typeof ReadIndexRoute
+  '/api/bible/chapter': typeof ApiBibleChapterRoute
   '/read/$book/$chapter': typeof ReadBookChapterRoute
+  '/read/$book/': typeof ReadBookIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -178,7 +195,9 @@ export interface FileRouteTypes {
     | '/search'
     | '/read/$book'
     | '/read/'
+    | '/api/bible/chapter'
     | '/read/$book/$chapter'
+    | '/read/$book/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -194,9 +213,10 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/search'
-    | '/read/$book'
     | '/read'
+    | '/api/bible/chapter'
     | '/read/$book/$chapter'
+    | '/read/$book'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -214,7 +234,9 @@ export interface FileRouteTypes {
     | '/search'
     | '/read/$book'
     | '/read/'
+    | '/api/bible/chapter'
     | '/read/$book/$chapter'
+    | '/read/$book/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -233,6 +255,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   ReadBookRoute: typeof ReadBookRouteWithChildren
   ReadIndexRoute: typeof ReadIndexRoute
+  ApiBibleChapterRoute: typeof ApiBibleChapterRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -324,12 +347,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReadBookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/read/$book/': {
+      id: '/read/$book/'
+      path: '/'
+      fullPath: '/read/$book/'
+      preLoaderRoute: typeof ReadBookIndexRouteImport
+      parentRoute: typeof ReadBookRoute
+    }
     '/read/$book/$chapter': {
       id: '/read/$book/$chapter'
       path: '/$chapter'
       fullPath: '/read/$book/$chapter'
       preLoaderRoute: typeof ReadBookChapterRouteImport
       parentRoute: typeof ReadBookRoute
+    }
+    '/api/bible/chapter': {
+      id: '/api/bible/chapter'
+      path: '/api/bible/chapter'
+      fullPath: '/api/bible/chapter'
+      preLoaderRoute: typeof ApiBibleChapterRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/lovable/email/queue/process': {
       id: '/lovable/email/queue/process'
@@ -357,10 +394,12 @@ declare module '@tanstack/react-router' {
 
 interface ReadBookRouteChildren {
   ReadBookChapterRoute: typeof ReadBookChapterRoute
+  ReadBookIndexRoute: typeof ReadBookIndexRoute
 }
 
 const ReadBookRouteChildren: ReadBookRouteChildren = {
   ReadBookChapterRoute: ReadBookChapterRoute,
+  ReadBookIndexRoute: ReadBookIndexRoute,
 }
 
 const ReadBookRouteWithChildren = ReadBookRoute._addFileChildren(
@@ -380,6 +419,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   ReadBookRoute: ReadBookRouteWithChildren,
   ReadIndexRoute: ReadIndexRoute,
+  ApiBibleChapterRoute: ApiBibleChapterRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,

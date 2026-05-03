@@ -3,12 +3,19 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/aperio/AppShell";
 import { BOOKS } from "@/data/bible";
-import { fetchChapter, FEATURED_TRANSLATIONS } from "@/lib/bible-api";
+import { isNative } from "@/lib/native";
+import {
+  FEATURED_TRANSLATIONS,
+  fetchChapter,
+  getReadableTranslations,
+  normalizeReadableTranslation,
+} from "@/lib/bible-api";
 import { fetchClavisCommentary, getClavisQueryKey } from "@/lib/clavis-query";
-import { bumpClavis, recordReading, toggleBookmark, useAperio } from "@/lib/aperio-store";
+import { bumpClavis, recordReading, setProfile, toggleBookmark, useAperio } from "@/lib/aperio-store";
 import { ClavisDrawer } from "@/components/aperio/ClavisDrawer";
 import { StrongsVerse } from "@/components/aperio/StrongsVerse";
-import { ArrowLeft, ChevronLeft, ChevronRight, Bookmark, KeyRound, MoreVertical, Loader2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Bookmark, KeyRound, MoreVertical, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/read/$book/$chapter")({
   head: ({ params }) => ({
@@ -22,16 +29,40 @@ export const Route = createFileRoute("/read/$book/$chapter")({
   component: ReaderPage,
 });
 
+function goToPath(nextPath: string) {
+  const useHashRouting =
+    window.location.protocol === "capacitor:" || window.location.protocol === "file:";
+  if (useHashRouting) {
+    if (window.location.hash !== `#${nextPath}`) {
+      window.history.pushState(null, "", `#${nextPath}`);
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    }
+    return;
+  }
+  if (window.location.pathname !== nextPath) {
+    window.history.pushState(null, "", nextPath);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }
+}
+
 function ReaderPage() {
   const { book, chapter } = useParams({ from: "/read/$book/$chapter" });
   const ch = Number(chapter);
   const { bookmarks, profile } = useAperio();
   const queryClient = useQueryClient();
-  // Map any legacy/unsupported translation (e.g. "ESV" from earlier versions) to BSB.
-  const supported = FEATURED_TRANSLATIONS.some((t) => t.id === profile.translation || t.shortName === profile.translation);
+  const [drawerTab, setDrawerTab] = useState<"commentary" | "verses">("commentary");
+  const [translationBusy, setTranslationBusy] = useState(false);
+  const availableTranslations = getReadableTranslations();
+  // Map any legacy or runtime-unsupported translation to a safe fallback.
+  const normalizedProfileTranslation = normalizeReadableTranslation(profile.translation);
+  const supported = availableTranslations.some(
+    (t) => t.id === normalizedProfileTranslation || t.shortName === normalizedProfileTranslation,
+  );
   const translation = supported
-    ? (FEATURED_TRANSLATIONS.find((t) => t.shortName === profile.translation)?.id ?? profile.translation)
+    ? (availableTranslations.find((t) => t.shortName === normalizedProfileTranslation)?.id ??
+      normalizedProfileTranslation)
     : "BSB";
+  const selectedTranslation = availableTranslations.find((t) => t.id === translation) ?? FEATURED_TRANSLATIONS[0];
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["chapter", translation, book, ch],
@@ -51,6 +82,11 @@ function ReaderPage() {
       recordReading(book, ch, 1);
     }
   }, [book, ch]);
+
+  useEffect(() => {
+    if (profile.translation === translation) return;
+    void setProfile({ translation });
+  }, [profile.translation, translation]);
 
   useEffect(() => {
     if (!data?.verses?.length) return;
@@ -75,8 +111,26 @@ function ReaderPage() {
 
   const openClavis = (verse?: number) => {
     bumpClavis();
-    if (verse) setSelectedVerse(verse);
+    if (verse) {
+      setSelectedVerse(verse);
+      setDrawerTab("verses");
+    } else {
+      setDrawerTab("commentary");
+    }
     setDrawer((d) => (d === "closed" ? "split" : d));
+  };
+
+  const changeTranslation = async (nextTranslation: string) => {
+    if (nextTranslation === translation) return;
+    setTranslationBusy(true);
+    try {
+      await setProfile({ translation: nextTranslation });
+      setSelectedVerse(null);
+      setStrongsVerse(null);
+      setDrawer("closed");
+    } finally {
+      setTranslationBusy(false);
+    }
   };
 
   const passageText = data?.verses
@@ -88,14 +142,62 @@ function ReaderPage() {
     <AppShell>
       <div className="relative mx-auto max-w-3xl">
         {/* Top bar */}
-        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border/40 bg-background/85 px-5 py-3 backdrop-blur-xl">
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border/40 bg-background/85 px-5 py-3 backdrop-blur-xl">
           <Link to="/read" className="rounded-full p-2 hover:bg-secondary">
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          <p className="font-serif text-base">
-            {book} <span className="text-[var(--gold-deep)]">{ch}</span>
-            {data && <span className="ml-2 text-[10px] uppercase tracking-wider text-muted-foreground">{data.translationName}</span>}
-          </p>
+          <div className="min-w-0 flex-1 text-center">
+            <button
+              type="button"
+              onClick={() => goToPath(`/read/${encodeURIComponent(book)}`)}
+              onTouchEnd={(event) => {
+                event.preventDefault();
+                goToPath(`/read/${encodeURIComponent(book)}`);
+              }}
+              className="mx-auto inline-flex max-w-full items-center gap-1 rounded-full px-2 py-1 font-serif text-base transition hover:bg-secondary/80"
+              aria-label={`Open chapter picker for ${book}`}
+            >
+              <span className="truncate">
+                {book} <span className="text-[var(--gold-deep)]">{ch}</span>
+              </span>
+              <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            </button>
+            <div className="mt-1 flex items-center justify-center gap-2">
+              {isNative() ? (
+                <select
+                  value={selectedTranslation.id}
+                  onChange={(event) => void changeTranslation(event.target.value)}
+                  aria-label="Bible version"
+                  disabled={translationBusy}
+                  className="h-8 rounded-md border border-border/60 bg-card/70 px-2.5 text-[11px] uppercase tracking-wider text-muted-foreground"
+                >
+                  {availableTranslations.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.shortName} · {option.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <Select value={selectedTranslation.id} onValueChange={changeTranslation}>
+                  <SelectTrigger
+                    className="h-8 w-[8.75rem] border-border/60 bg-card/70 px-2.5 text-[11px] uppercase tracking-wider text-muted-foreground"
+                    aria-label="Bible version"
+                    disabled={translationBusy}
+                  >
+                    <SelectValue placeholder="Translation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTranslations.map((option) => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.shortName} · {option.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {translationBusy && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+            </div>
+          </div>
           <button className="rounded-full p-2 hover:bg-secondary"><MoreVertical className="h-4 w-4" /></button>
         </header>
 
@@ -214,7 +316,9 @@ function ReaderPage() {
           book={book}
           chapter={ch}
           selectedVerse={selectedVerse}
+          verses={data?.verses ?? []}
           passageText={passageText}
+          initialTab={drawerTab}
         />
       </div>
     </AppShell>

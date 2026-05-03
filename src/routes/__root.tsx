@@ -6,7 +6,6 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
 
@@ -92,15 +91,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    void (async () => {
-      const { Capacitor } = await import("@capacitor/core");
-      if (!Capacitor.isNativePlatform()) return;
-      const { attachNativeAuthListener } = await import("@/lib/native-auth");
-      attachNativeAuthListener();
-    })();
-  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />

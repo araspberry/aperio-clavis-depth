@@ -8,6 +8,7 @@ Aperio is a Lovable.dev-generated AI Bible reader focused on clarity while readi
 - Routing: file-based TanStack routes in `src/routes`, with a separate hash-history Capacitor entry in `src/capacitor-entry.tsx`.
 - Auth: Supabase auth plus Lovable Cloud OAuth for web. Native Google OAuth opens with `@capacitor/browser` and returns through the `com.aperio.app://auth/callback` URL scheme.
 - Database/API usage: Supabase tables for profiles, prayers, bookmarks, and notes; Supabase Edge Functions for Clavis and Strong's data; `https://bible.helloao.org/api` for Bible text.
+- Licensed translation support: `ESV` and `NLT` are proxied through a server-side route so API keys do not ship to the client.
 - Environment: Supabase values are read from `SUPABASE_*` and `VITE_SUPABASE_*` variables. Start from `.env.example`.
 - Build: `npm run build` creates both the web/TanStack build and the static Capacitor bundle in `dist/capacitor`.
 - iOS blocker found: the repo had Capacitor config and dependencies, but no checked-in `ios/` native project. The generated iOS app also needed URL schemes registered for OAuth callbacks.
@@ -27,6 +28,13 @@ npm run dev
 
 Open the local URL printed by Vite.
 
+If you want licensed translations in the picker, add the relevant server-side keys:
+
+```sh
+ESV_API_KEY=your-crossway-key
+NLT_API_KEY=your-tyndale-key
+```
+
 ## Checks
 
 ```sh
@@ -36,6 +44,13 @@ npm run lint
 ```
 
 Current note: `npm run lint` checks TypeScript/React rules and leaves formatting to `npm run format`. Some generated UI modules still emit Fast Refresh warnings because they export helper constants alongside components.
+
+## Translation Notes
+
+- `BSB`, `KJV`, `ASV`, `WEB`, `NET`, and `YLT` are fetched from the Free Use Bible API.
+- `ESV` uses the official Crossway API through the local server route `/api/bible/chapter`.
+- `NLT` uses the official Tyndale API through the same server route.
+- For production/iOS, Lovable should mirror the same licensed-translation proxy behavior on the hosted backend or Supabase side, since bundled native assets do not include a local Node server.
 
 ## iOS Setup
 

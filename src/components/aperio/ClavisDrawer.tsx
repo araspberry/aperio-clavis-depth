@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, X, BookOpen, Languages, Link2, ScrollText, NotebookPen, Loader2, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronUp, X, BookOpen, Languages, Link2, ScrollText, NotebookPen, Loader2, Sparkles, ListOrdered } from "lucide-react";
 import { getCommentary, toneIntro, type ClavisCommentary } from "@/data/clavis";
 import { setNote, useAperio } from "@/lib/aperio-store";
 import { fetchClavisCommentary, getClavisQueryKey } from "@/lib/clavis-query";
+import type { ApiVerse } from "@/lib/bible-api";
 
 type DrawerState = "closed" | "peek" | "split" | "full";
 
@@ -16,6 +17,7 @@ const HEIGHTS: Record<DrawerState, string> = {
 
 const TABS = [
   { id: "commentary", label: "Commentary", icon: BookOpen },
+  { id: "verses", label: "Verses", icon: ListOrdered },
   { id: "lexicon", label: "Lexicon", icon: Languages },
   { id: "cross", label: "Cross Refs", icon: Link2 },
   { id: "manuscript", label: "Manuscript", icon: ScrollText },
@@ -30,22 +32,27 @@ export function ClavisDrawer({
   book,
   chapter,
   selectedVerse,
+  verses,
   passageText,
+  initialTab = "commentary",
 }: {
   state: DrawerState;
   setState: (s: DrawerState) => void;
   book: string;
   chapter: number;
   selectedVerse: number | null;
+  verses: ApiVerse[];
   passageText?: string;
+  initialTab?: TabId;
 }) {
   const { profile, notes } = useAperio();
-  const [tab, setTab] = useState<TabId>("commentary");
+  const [tab, setTab] = useState<TabId>(initialTab);
+  const [verseFocus, setVerseFocus] = useState<number | null>(selectedVerse ?? verses[0]?.n ?? null);
   const fallback = getCommentary(book, chapter);
 
   const enabled = state !== "closed";
   const aiQuery = useQuery({
-    queryKey: getClavisQueryKey(book, chapter, selectedVerse, profile.clavisTone),
+    queryKey: getClavisQueryKey(book, chapter, null, profile.clavisTone),
     enabled,
     staleTime: 1000 * 60 * 60 * 24,
     gcTime: 1000 * 60 * 60 * 24 * 7,
@@ -54,14 +61,34 @@ export function ClavisDrawer({
       fetchClavisCommentary({
         book,
         chapter,
-        selectedVerse,
+        selectedVerse: null,
         tone: profile.clavisTone,
         passageText,
+      }),
+  });
+  const versePassageText = verseFocus
+    ? verses.find((verse) => verse.n === verseFocus)?.text
+    : undefined;
+  const verseQuery = useQuery({
+    queryKey: getClavisQueryKey(book, chapter, verseFocus, profile.clavisTone),
+    enabled: enabled && tab === "verses" && verseFocus !== null,
+    staleTime: 1000 * 60 * 60 * 24,
+    gcTime: 1000 * 60 * 60 * 24 * 7,
+    retry: 0,
+    queryFn: () =>
+      fetchClavisCommentary({
+        book,
+        chapter,
+        selectedVerse: verseFocus,
+        tone: profile.clavisTone,
+        passageText: versePassageText ? `${verseFocus} ${versePassageText}` : undefined,
       }),
   });
 
   const commentary: ClavisCommentary = aiQuery.data ?? fallback;
   const isAI = !!aiQuery.data;
+  const verseCommentary = verseQuery.data;
+  const isVerseAI = !!verseQuery.data;
 
   const noteKey = `${book} ${chapter}${selectedVerse ? `:${selectedVerse}` : ""}`;
   const [draftNote, setDraftNote] = useState(notes[noteKey] ?? "");
@@ -69,6 +96,14 @@ export function ClavisDrawer({
   useEffect(() => {
     setDraftNote(notes[noteKey] ?? "");
   }, [noteKey, notes]);
+
+  useEffect(() => {
+    setTab(initialTab);
+  }, [initialTab, book, chapter]);
+
+  useEffect(() => {
+    setVerseFocus(selectedVerse ?? verses[0]?.n ?? null);
+  }, [selectedVerse, verses, book, chapter]);
 
   const dragRef = useRef<{ startY: number; startState: DrawerState } | null>(null);
 
@@ -111,8 +146,16 @@ export function ClavisDrawer({
             <div className="flex items-center gap-2">
               <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--gold-soft)]/80">{toneIntro(profile.clavisTone)}</span>
               <span className="text-[10px] text-white/40">·</span>
-              <span className="text-[10px] text-white/60">{book} {chapter}{selectedVerse ? `:${selectedVerse}` : ""}</span>
-              {isAI && <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-[var(--gold)]/15 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-[var(--gold-soft)]"><Sparkles className="h-2.5 w-2.5" />Live</span>}
+              <span className="text-[10px] text-white/60">
+                {book} {chapter}
+                {tab === "verses" && verseFocus ? `:${verseFocus}` : ""}
+                {tab === "notes" && selectedVerse ? `:${selectedVerse}` : ""}
+              </span>
+              {((tab === "verses" && isVerseAI) || (tab !== "verses" && isAI)) && (
+                <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-[var(--gold)]/15 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-[var(--gold-soft)]">
+                  <Sparkles className="h-2.5 w-2.5" />Live
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-1">
               <button onClick={cycleDown} className="rounded-full p-1.5 hover:bg-white/10"><ChevronDown className="h-4 w-4" /></button>
@@ -162,6 +205,64 @@ export function ClavisDrawer({
                 <Section title="Theological Significance">{commentary.theology}</Section>
                 <Section title="Historical & Cultural Context">{commentary.context}</Section>
                 <Section title="Application">{commentary.application}</Section>
+              </div>
+            )}
+            {tab === "verses" && (
+              <div className="space-y-5">
+                <div className="overflow-x-auto">
+                  <div className="flex gap-2 pb-1">
+                    {verses.map((verse) => {
+                      const active = verseFocus === verse.n;
+                      return (
+                        <button
+                          key={verse.n}
+                          onClick={() => setVerseFocus(verse.n)}
+                          className={`shrink-0 rounded-full border px-3 py-1.5 text-xs transition ${
+                            active
+                              ? "border-[var(--gold)] bg-[var(--gold)]/15 text-[var(--gold-soft)]"
+                              : "border-white/10 bg-white/5 text-white/65 hover:border-white/20 hover:text-white"
+                          }`}
+                        >
+                          {book} {chapter}:{verse.n}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {verseQuery.isLoading && !isVerseAI && (
+                  <div className="flex items-center gap-2 text-xs text-white/60">
+                    <Loader2 className="h-3 w-3 animate-spin" /> Loading live verse commentary…
+                  </div>
+                )}
+                {verseQuery.isFetching && isVerseAI && (
+                  <div className="text-xs text-white/50">Refreshing live verse commentary…</div>
+                )}
+                {verseQuery.error && (
+                  <div className="rounded-lg border border-amber-400/30 bg-amber-400/10 p-3 text-xs text-amber-100">
+                    {(verseQuery.error as Error).message || "Clavis couldn't reach the AI for this verse just now."}
+                  </div>
+                )}
+                {verseFocus !== null && (
+                  <div className="space-y-4">
+                    <p className="text-lg font-semibold text-[var(--gold-soft)]">{book} {chapter}:{verseFocus}</p>
+                    <p className="scripture text-sm italic leading-7 text-white/70">
+                      {verses.find((verse) => verse.n === verseFocus)?.text}
+                    </p>
+                    {verseCommentary ? (
+                      <div className="space-y-5 text-[1.04rem] leading-8 text-white/88">
+                        <p>{verseCommentary.overview}</p>
+                        <p>{verseCommentary.theology}</p>
+                        <p>{verseCommentary.context}</p>
+                        <p>{verseCommentary.application}</p>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-white/65">
+                        Clavis is warming up a verse-specific breakdown for this line.
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
             {tab === "lexicon" && (

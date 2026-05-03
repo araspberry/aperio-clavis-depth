@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { LEGACY_NATIVE_REDIRECT_URI, NATIVE_OAUTH_ORIGIN, NATIVE_REDIRECT_URI } from "./native";
 
 let listenerAttached = false;
+let lastHandledUrl: string | null = null;
+const PENDING_NATIVE_AUTH_KEY = "aperio:native-oauth-pending";
 
 export function forwardNativeOAuthCallback() {
   if (typeof window === "undefined") return false;
@@ -28,6 +30,15 @@ export function attachNativeAuthListener() {
     const url = event.url;
     console.info("[native-auth] appUrlOpen", url);
     if (!url.startsWith(NATIVE_REDIRECT_URI) && !url.startsWith(LEGACY_NATIVE_REDIRECT_URI)) return;
+    if (typeof window !== "undefined" && window.sessionStorage.getItem(PENDING_NATIVE_AUTH_KEY) !== "1") {
+      console.info("[native-auth] ignoring callback without pending auth flow");
+      return;
+    }
+    if (url === lastHandledUrl) {
+      console.info("[native-auth] ignoring duplicate callback");
+      return;
+    }
+    lastHandledUrl = url;
 
     // Close the in-app browser (SFSafariViewController) as soon as we get the callback.
     try { await Browser.close(); } catch (e) { /* no-op if already closed */ }
@@ -51,6 +62,9 @@ export function attachNativeAuthListener() {
     } catch (e) {
       console.error("[native-auth] failed to set session", e);
     } finally {
+      if (typeof window !== "undefined") {
+        window.sessionStorage.removeItem(PENDING_NATIVE_AUTH_KEY);
+      }
       console.info("[native-auth] callback handled");
     }
   });
@@ -59,6 +73,9 @@ export function attachNativeAuthListener() {
 /** Starts OAuth in an in-app browser so the deep-link return reopens this app reliably. */
 export async function startNativeOAuth(provider: "google" | "apple") {
   attachNativeAuthListener();
+  if (typeof window !== "undefined") {
+    window.sessionStorage.setItem(PENDING_NATIVE_AUTH_KEY, "1");
+  }
 
   // Ask Supabase directly for the provider URL with our custom scheme as redirect.
   // We do NOT auto-redirect the WebView — we open the returned URL in an in-app
@@ -71,6 +88,9 @@ export async function startNativeOAuth(provider: "google" | "apple") {
     },
   });
   if (error || !data?.url) {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.removeItem(PENDING_NATIVE_AUTH_KEY);
+    }
     console.error("[native-auth] failed to get OAuth URL", error);
     throw error ?? new Error("No OAuth URL returned");
   }
