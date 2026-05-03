@@ -31,14 +31,14 @@ interface BibleListResponse {
 // We list these as "preferred" — only those actually returned by the
 // /bibles endpoint will be shown. If none of these are available we fall back
 // to the full English list from API.Bible.
+// Versions associated with this API key (premium + curated public).
+// Order matters — first one is the default fallback.
 const PREFERRED_BIBLES: ApiTranslation[] = [
+  { id: "d6e14a625393b4da-01", shortName: "NLT", name: "New Living Translation", language: "eng" },
+  { id: "63097d2a0a2f7db3-01", shortName: "NKJV", name: "New King James Version", language: "eng" },
+  { id: "a81b73293d3080c9-01", shortName: "AMP", name: "Amplified Bible", language: "eng" },
   { id: "de4e12af7f28f599-02", shortName: "KJV", name: "King James Version", language: "eng" },
-  { id: "de4e12af7f28f599-01", shortName: "KJV", name: "King James Version", language: "eng" },
   { id: "06125adad2d5898a-01", shortName: "ASV", name: "American Standard Version", language: "eng" },
-  { id: "9879dbb7cfe39e4d-01", shortName: "WEB", name: "World English Bible", language: "eng" },
-  { id: "65eec8e0b60e656b-01", shortName: "FBV", name: "Free Bible Version", language: "eng" },
-  { id: "01b29f4b342acc35-01", shortName: "LSV", name: "Literal Standard Version", language: "eng" },
-  { id: "55212e3cf5d04d49-01", shortName: "KJVCPB", name: "Cambridge Paragraph Bible (KJV)", language: "eng" },
 ];
 
 // Default until the live list resolves. Kept stable so other modules can
