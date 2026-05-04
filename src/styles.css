@@ -64,7 +64,7 @@
 :root {
   --radius: 0.625rem;
   /* Aperio — Cathedral Principle. Cream parchment + deep navy + gold. */
-  --background: oklch(0.975 0.012 85);
+  --background: oklch(1 0 0);
   --foreground: oklch(0.22 0.04 260);
   --card: oklch(0.99 0.008 85);
   --card-foreground: oklch(0.22 0.04 260);
@@ -90,7 +90,7 @@
   --gold-deep: oklch(0.65 0.15 70);
   --navy: oklch(0.22 0.04 260);
   --navy-deep: oklch(0.15 0.035 260);
-  --cream: oklch(0.975 0.012 85);
+  --cream: oklch(1 0 0);
   --parchment: oklch(0.95 0.022 82);
   --gradient-gold: linear-gradient(135deg, oklch(0.82 0.13 82), oklch(0.68 0.15 68));
   --gradient-navy: linear-gradient(180deg, oklch(0.22 0.04 260), oklch(0.13 0.035 260));
