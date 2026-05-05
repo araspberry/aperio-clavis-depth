@@ -14,7 +14,7 @@ import { fetchClavisCommentary, getClavisQueryKey } from "@/lib/clavis-query";
 import { bumpClavis, recordReading, setProfile, toggleBookmark, useAperio } from "@/lib/aperio-store";
 import { ClavisDrawer } from "@/components/aperio/ClavisDrawer";
 import { StrongsVerse } from "@/components/aperio/StrongsVerse";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Bookmark, KeyRound, MoreVertical, Loader2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Bookmark, KeyRound, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/read/$book/$chapter")({
@@ -162,43 +162,50 @@ function ReaderPage() {
               </span>
               <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             </button>
-            <div className="mt-1 flex items-center justify-center gap-2">
-              {isNative() ? (
+            <div className="mt-0.5 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+              Chapter {ch}
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {isNative() ? (
+              <div className="relative inline-flex items-center">
                 <select
                   value={selectedTranslation.id}
                   onChange={(event) => void changeTranslation(event.target.value)}
                   aria-label="Bible version"
                   disabled={translationBusy}
-                  className="h-8 rounded-md border border-border/60 bg-card/70 px-2.5 text-[11px] uppercase tracking-wider text-muted-foreground"
+                  className="h-8 appearance-none rounded-full border border-[var(--gold)] bg-transparent pl-3 pr-7 text-xs font-semibold uppercase tracking-wider text-[var(--gold-deep)]"
                 >
                   {availableTranslations.map((option) => (
                     <option key={option.id} value={option.id}>
-                      {option.shortName} · {option.name}
+                      {option.shortName}
                     </option>
                   ))}
                 </select>
-              ) : (
-                <Select value={selectedTranslation.id} onValueChange={changeTranslation}>
-                  <SelectTrigger
-                    className="h-8 w-[8.75rem] border-border/60 bg-card/70 px-2.5 text-[11px] uppercase tracking-wider text-muted-foreground"
-                    aria-label="Bible version"
-                    disabled={translationBusy}
-                  >
-                    <SelectValue placeholder="Translation" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableTranslations.map((option) => (
-                      <SelectItem key={option.id} value={option.id}>
-                        {option.shortName} · {option.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              {translationBusy && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
-            </div>
+                <ChevronDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-[var(--gold-deep)]" />
+              </div>
+            ) : (
+              <Select value={selectedTranslation.id} onValueChange={changeTranslation}>
+                <SelectTrigger
+                  className="h-8 w-auto gap-1 rounded-full border-[var(--gold)] bg-transparent px-3 text-xs font-semibold uppercase tracking-wider text-[var(--gold-deep)]"
+                  aria-label="Bible version"
+                  disabled={translationBusy}
+                >
+                  <SelectValue placeholder="Version">
+                    {selectedTranslation.shortName}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTranslations.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>
+                      {option.shortName} · {option.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {translationBusy && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
           </div>
-          <button className="rounded-full p-2 hover:bg-secondary"><MoreVertical className="h-4 w-4" /></button>
         </header>
 
         {/* Scripture */}
