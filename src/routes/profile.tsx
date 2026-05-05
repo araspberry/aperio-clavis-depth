@@ -1,7 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/aperio/AppShell";
 import { resetAll, signOut, useAperio } from "@/lib/aperio-store";
-import { Sparkles, LogOut } from "lucide-react";
+import { Sparkles, LogOut, Trash2 } from "lucide-react";
+import { deleteMyAccount } from "@/server/account.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile — Aperio" }] }),
@@ -11,6 +14,7 @@ export const Route = createFileRoute("/profile")({
 function ProfilePage() {
   const { profile, prayers, bookmarks, notes, streak, longestStreak, totalDays, clavisSessions, minutesToday } = useAperio();
   const navigate = useNavigate();
+  const [deleting, setDeleting] = useState(false);
   const memberSince = profile.memberSince ? new Date(profile.memberSince).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "—";
   const goal = profile.dailyMinutes;
   const pct = Math.min(100, (minutesToday / goal) * 100);
@@ -137,6 +141,29 @@ function ProfilePage() {
           onClick={async () => { await signOut(); navigate({ to: "/auth" }); }}
           className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-xs text-muted-foreground hover:text-foreground">
           <LogOut className="h-3.5 w-3.5" /> Sign out
+        </button>
+
+        <button
+          disabled={deleting}
+          onClick={async () => {
+            const ok = confirm(
+              "Permanently delete your Aperio account?\n\nThis removes your profile, prayers, notes, and bookmarks. This cannot be undone."
+            );
+            if (!ok) return;
+            const sure = confirm("Are you absolutely sure? This is permanent.");
+            if (!sure) return;
+            setDeleting(true);
+            try {
+              await deleteMyAccount();
+              await supabase.auth.signOut();
+              navigate({ to: "/auth" });
+            } catch (e) {
+              alert("Could not delete account: " + (e instanceof Error ? e.message : String(e)));
+              setDeleting(false);
+            }
+          }}
+          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/40 py-3 text-xs text-destructive hover:bg-destructive/10 disabled:opacity-50">
+          <Trash2 className="h-3.5 w-3.5" /> {deleting ? "Deleting…" : "Delete account"}
         </button>
       </div>
     </AppShell>
