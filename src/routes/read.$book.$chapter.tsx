@@ -14,7 +14,7 @@ import { fetchClavisCommentary, getClavisQueryKey } from "@/lib/clavis-query";
 import { bumpClavis, recordReading, setProfile, toggleBookmark, useAperio } from "@/lib/aperio-store";
 import { ClavisDrawer } from "@/components/aperio/ClavisDrawer";
 import { StrongsVerse } from "@/components/aperio/StrongsVerse";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Bookmark, KeyRound, MoreVertical, Loader2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Bookmark, KeyRound, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/read/$book/$chapter")({
