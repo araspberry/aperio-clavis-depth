@@ -200,7 +200,6 @@ export type Database = {
           created_at: string
           daily_minutes: number | null
           denomination: string | null
-          dob: string | null
           first_name: string | null
           gender: string | null
           id: string
@@ -231,7 +230,6 @@ export type Database = {
           created_at?: string
           daily_minutes?: number | null
           denomination?: string | null
-          dob?: string | null
           first_name?: string | null
           gender?: string | null
           id: string
@@ -262,7 +260,6 @@ export type Database = {
           created_at?: string
           daily_minutes?: number | null
           denomination?: string | null
-          dob?: string | null
           first_name?: string | null
           gender?: string | null
           id?: string

@@ -84,10 +84,10 @@ function PrivacyPage() {
 
           <Section title="2. Information We Collect">
             <h3 className="font-semibold mt-4">2.1 Information You Provide to Us</h3>
-            <p>When you create an account and complete the onboarding process, we collect:</p>
+            <p>When you create an account and use profile or preference features, we collect:</p>
             <ul className="list-disc pl-6 space-y-1">
               <li>Account credentials: email address and password (passwords are handled by our authentication provider and are not stored in plain text by the app)</li>
-              <li>Personal identification: first name, last name, date of birth, and gender</li>
+              <li>Optional profile details: first name, last name, and gender</li>
               <li>Location information: city, state, and country</li>
               <li>Professional context: your occupation or student status</li>
               <li>Faith background: denomination, faith journey stage, and topics of interest</li>

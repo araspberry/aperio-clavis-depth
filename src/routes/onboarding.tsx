@@ -79,9 +79,6 @@ function Onboarding() {
           {step === 3 && (
             <Screen title="Tell us a little about yourself.">
               <div className="space-y-4">
-                <Field label="Date of birth">
-                  <Input type="date" value={draft.dob} onChange={(e) => update({ dob: e.target.value })} className="onboarding-input" />
-                </Field>
                 <Field label="Gender">
                   <ChoiceGrid
                     value={draft.gender}
