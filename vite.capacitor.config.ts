@@ -10,15 +10,21 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   base: "./",
+  resolve: {
+    alias: {
+      "@/server/account.functions": resolve(__dirname, "src/server/account.functions.capacitor.ts"),
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),
     tsConfigPaths(),
     {
       name: "capacitor-index-html",
-      closeBundle() {
+      writeBundle() {
         const src = "dist/capacitor/index.capacitor.html";
         const dest = "dist/capacitor/index.html";
+        if (existsSync(dest)) return;
         if (!existsSync(src)) {
           throw new Error(
             `[capacitor-index-html] Expected ${src} to exist after build, but it was not emitted. ` +

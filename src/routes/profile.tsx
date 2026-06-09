@@ -114,7 +114,6 @@ function ProfilePage() {
         <section className="mt-6 rounded-2xl border border-border bg-card p-5">
           <p className="text-xs uppercase tracking-wider text-muted-foreground">Preferences</p>
           <dl className="mt-3 grid gap-2 text-sm">
-            <Row k="Date of birth" v={profile.dob || "—"} />
             <Row k="Gender" v={profile.gender || "—"} />
             <Row k="Location" v={[profile.city, profile.state, profile.country].filter(Boolean).join(", ") || "—"} />
             <Row k="Profession" v={profile.profession || "—"} />

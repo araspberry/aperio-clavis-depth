@@ -6,7 +6,6 @@ export type ClavisTone = "scholarly" | "devotional" | "balanced" | "auto";
 export interface UserProfile {
   firstName: string;
   lastName: string;
-  dob: string;
   gender: string;
   city: string;
   state: string;
@@ -60,7 +59,6 @@ const defaultState: AppState = {
   profile: {
     firstName: "",
     lastName: "",
-    dob: "",
     gender: "",
     city: "",
     state: "",
@@ -167,7 +165,6 @@ function rowToProfile(r: any): UserProfile {
   return {
     firstName: r.first_name ?? "",
     lastName: r.last_name ?? "",
-    dob: r.dob ?? "",
     gender: r.gender ?? "",
     city: r.city ?? "",
     state: r.state ?? "",
@@ -190,7 +187,6 @@ function profileToRow(p: Partial<UserProfile>): Record<string, any> {
   const out: Record<string, any> = {};
   if (p.firstName !== undefined) out.first_name = p.firstName;
   if (p.lastName !== undefined) out.last_name = p.lastName;
-  if (p.dob !== undefined) out.dob = p.dob;
   if (p.gender !== undefined) out.gender = p.gender;
   if (p.city !== undefined) out.city = p.city;
   if (p.state !== undefined) out.state = p.state;

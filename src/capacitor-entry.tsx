@@ -2,7 +2,7 @@ import { StrictMode, startTransition } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "@tanstack/react-router";
 
-import { getRouter } from "./router";
+import { getRouter } from "./router.capacitor";
 import "./styles.css";
 import { forwardNativeOAuthCallback } from "./lib/native-auth";
 
