@@ -12,7 +12,7 @@ export const Route = createFileRoute("/onboarding")({
   component: Onboarding,
 });
 
-const TOTAL = 14; // 0..13
+const TOTAL = 13; // steps 0..12
 
 function Onboarding() {
   const { profile } = useAperio();
@@ -77,22 +77,6 @@ function Onboarding() {
             </Screen>
           )}
           {step === 3 && (
-            <Screen title="Tell us a little about yourself.">
-              <div className="space-y-4">
-                <Field label="Date of birth">
-                  <Input type="date" value={draft.dob} onChange={(e) => update({ dob: e.target.value })} className="onboarding-input" />
-                </Field>
-                <Field label="Gender">
-                  <ChoiceGrid
-                    value={draft.gender}
-                    onChange={(v) => update({ gender: v })}
-                    options={["Male", "Female", "Prefer not to answer"]}
-                  />
-                </Field>
-              </div>
-            </Screen>
-          )}
-          {step === 4 && (
             <Screen title="Where are you in the world?" subtitle="Used to localize scripture events, community features, and future experiences.">
               <div className="space-y-4">
                 <Field label="City"><Input value={draft.city} onChange={(e) => update({ city: e.target.value })} className="onboarding-input" /></Field>
@@ -101,7 +85,7 @@ function Onboarding() {
               </div>
             </Screen>
           )}
-          {step === 5 && (
+          {step === 4 && (
             <Screen title="What does your daily life look like?">
               <ChoiceList
                 value={draft.profession}
@@ -110,7 +94,7 @@ function Onboarding() {
               />
             </Screen>
           )}
-          {step === 6 && (
+          {step === 5 && (
             <Screen title="Where do you come from spiritually?" subtitle="No judgment. Every tradition is welcome here.">
               <ChoiceList
                 value={draft.denomination}
@@ -119,7 +103,7 @@ function Onboarding() {
               />
             </Screen>
           )}
-          {step === 7 && (
+          {step === 6 && (
             <Screen title="What brings you to Aperio?" subtitle="Select all that apply.">
               <MultiList
                 value={draft.reasons}
@@ -128,7 +112,7 @@ function Onboarding() {
               />
             </Screen>
           )}
-          {step === 8 && (
+          {step === 7 && (
             <Screen title="How would you describe your faith right now?">
               <ChoiceList
                 value={draft.journey}
@@ -137,7 +121,7 @@ function Onboarding() {
               />
             </Screen>
           )}
-          {step === 9 && (
+          {step === 8 && (
             <Screen title="Which Bible translation feels like home?">
               <ChoiceGrid
                 value={draft.translation}
@@ -146,7 +130,7 @@ function Onboarding() {
               />
             </Screen>
           )}
-          {step === 10 && (
+          {step === 9 && (
             <Screen title="What topics or books stir something in you?" subtitle="Select all that apply.">
               <MultiList
                 value={draft.topics}
@@ -155,7 +139,7 @@ function Onboarding() {
               />
             </Screen>
           )}
-          {step === 11 && (
+          {step === 10 && (
             <Screen title="How much time are you willing to commit to the Word each day?">
               <ChoiceList
                 value={String(draft.dailyMinutes)}
@@ -182,7 +166,7 @@ function Onboarding() {
               </div>
             </Screen>
           )}
-          {step === 12 && (
+          {step === 11 && (
             <Screen title="How would you like Clavis to speak to you?" subtitle="Clavis is the AI engine inside Aperio. It will unlock every passage you read — automatically.">
               <ChoiceList
                 value={draft.clavisTone}
@@ -196,7 +180,7 @@ function Onboarding() {
               />
             </Screen>
           )}
-          {step === 13 && (
+          {step === 12 && (
             <div className="text-center">
               <p className="text-sm uppercase tracking-[0.3em] text-[var(--gold-soft)]/70">A moment</p>
               <h1 className="mt-6 font-serif text-4xl leading-tight">
@@ -217,7 +201,7 @@ function Onboarding() {
 
           {step < TOTAL - 1 ? (
             <Button
-              onClick={step === 0 || step === 1 ? next : next}
+              onClick={next}
               className="rounded-full bg-gradient-gold px-7 py-5 text-[var(--navy-deep)] hover:opacity-90 shadow-gold"
               disabled={step === 2 && !draft.firstName}
             >
