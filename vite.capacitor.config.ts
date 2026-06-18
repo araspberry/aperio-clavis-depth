@@ -17,16 +17,21 @@ export default defineConfig({
     {
       name: "capacitor-index-html",
       closeBundle() {
-        const src = "dist/capacitor/index.capacitor.html";
-        const dest = "dist/capacitor/index.html";
-        if (!existsSync(src)) {
-          throw new Error(
-            `[capacitor-index-html] Expected ${src} to exist after build, but it was not emitted. ` +
-            `This usually means Vite couldn't transform any modules — most often because the project ` +
-            `path contains special characters like '#'. Rename the project folder and rebuild.`
-          );
+        // Vite 7 emits the HTML using the input key name ("index" → "index.html").
+        // If it was somehow emitted as index.capacitor.html, rename it.
+        const direct = "dist/capacitor/index.html";
+        const legacy = "dist/capacitor/index.capacitor.html";
+        if (existsSync(direct)) {
+          return;
         }
-        renameSync(src, dest);
+        if (existsSync(legacy)) {
+          renameSync(legacy, direct);
+          return;
+        }
+        throw new Error(
+          `[capacitor-index-html] Neither ${direct} nor ${legacy} was emitted. ` +
+          `Check that index.capacitor.html exists at the project root and that the build completed without errors.`
+        );
       },
     },
   ],
