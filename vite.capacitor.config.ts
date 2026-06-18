@@ -33,10 +33,9 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      // Alias server-only TanStack Start packages to client stubs.
       "@tanstack/start-server-core": resolve(__dirname, "src/stubs/tanstack-start-server-core.ts"),
       "@tanstack/start-storage-context": resolve(__dirname, "src/stubs/tanstack-start-storage-context.ts"),
-      // Alias Node.js stream built-ins used by @tanstack/router-core SSR files.
+      "@tanstack/react-start/server": resolve(__dirname, "src/stubs/tanstack-react-start-server.ts"),
       "node:stream/web": resolve(__dirname, "src/stubs/node-stream-web.ts"),
       "node:stream": resolve(__dirname, "src/stubs/node-stream.ts"),
     },
