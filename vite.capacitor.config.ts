@@ -34,16 +34,11 @@ export default defineConfig({
   resolve: {
     alias: {
       // Alias server-only TanStack Start packages to client stubs.
-      // These packages use Node.js internals (async_hooks, package #imports)
-      // that cannot be bundled for a browser / Capacitor target.
-      "@tanstack/start-server-core": resolve(
-        __dirname,
-        "src/stubs/tanstack-start-server-core.ts"
-      ),
-      "@tanstack/start-storage-context": resolve(
-        __dirname,
-        "src/stubs/tanstack-start-storage-context.ts"
-      ),
+      "@tanstack/start-server-core": resolve(__dirname, "src/stubs/tanstack-start-server-core.ts"),
+      "@tanstack/start-storage-context": resolve(__dirname, "src/stubs/tanstack-start-storage-context.ts"),
+      // Alias Node.js stream built-ins used by @tanstack/router-core SSR files.
+      "node:stream/web": resolve(__dirname, "src/stubs/node-stream-web.ts"),
+      "node:stream": resolve(__dirname, "src/stubs/node-stream.ts"),
     },
   },
   build: {
