@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { existsSync } from "node:fs";
+import { existsSync, renameSync } from "node:fs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -21,7 +21,6 @@ export default defineConfig({
         const legacy = "dist/capacitor/index.capacitor.html";
         if (existsSync(direct)) return;
         if (existsSync(legacy)) {
-          const { renameSync } = require("node:fs");
           renameSync(legacy, direct);
           return;
         }
