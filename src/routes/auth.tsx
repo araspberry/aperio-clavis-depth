@@ -5,8 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { isNative } from "@/lib/native";
 import { startNativeOAuth } from "@/lib/native-auth";
-import { signInWithAppleNative } from "@/lib/apple-auth";
-import { Capacitor } from "@capacitor/core";
 import { isGuestModeEnabled, startGuestMode } from "@/lib/aperio-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +30,6 @@ type Step = 0 | 1 | 2;
 function AuthPage() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/auth" });
-  const isIOS = isNative() && Capacitor.getPlatform() === "ios";
   const [mode, setMode] = useState<Mode>("signin");
   const [step, setStep] = useState<Step>(0);
   const [direction, setDirection] = useState<1 | -1>(1);
@@ -161,23 +158,35 @@ function AuthPage() {
     setBusy(true);
     setError(null);
     try {
-      if (isIOS) {
-        // Native Apple ID sheet (Face ID / Touch ID); session lands via signInWithIdToken,
-        // then onAuthStateChange navigates to the post-auth target.
-        await signInWithAppleNative();
+      if (isNative()) {
+        // Same proven flow as Google: system browser → Supabase OAuth (Apple
+        // provider, managed by Lovable Cloud) → deep-link back into the app.
+        await startNativeOAuth("apple");
         return;
       }
-      // Web fallback: standard Supabase OAuth redirect flow.
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "apple",
-        options: { redirectTo: window.location.origin },
+      const isLocalDev =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1" ||
+        window.location.hostname === "::1";
+      if (isLocalDev) {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "apple",
+          options: { redirectTo: window.location.origin },
+        });
+        if (error) throw error;
+        return;
+      }
+      const result = await lovable.auth.signInWithOAuth("apple", {
+        redirect_uri: window.location.origin,
       });
-      if (error) throw error;
-    } catch (err) {
-      if (err instanceof Error && err.name === "AppleSignInCancelled") {
+      if (result.error) {
+        setError(result.error instanceof Error ? result.error.message : "Apple sign-in failed.");
         setBusy(false);
         return;
       }
+      if (result.redirected) return;
+      navigate({ to: postAuthTarget });
+    } catch (err) {
       setError(err instanceof Error ? err.message : "Apple sign-in failed.");
       setBusy(false);
     }
