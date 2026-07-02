@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/aperio/AppShell";
 import { resetAll, signOut, useAperio } from "@/lib/aperio-store";
 import { Sparkles, LogOut, Trash2 } from "lucide-react";
-import { deleteMyAccount } from "@/server/account.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 
@@ -154,7 +153,11 @@ function ProfilePage() {
             if (!sure) return;
             setDeleting(true);
             try {
-              await deleteMyAccount();
+              // Edge function works in both native (Capacitor) and web builds —
+              // TanStack server functions are unavailable in the native app.
+              const { data, error } = await supabase.functions.invoke("delete-account", { method: "POST" });
+              if (error) throw new Error(error.message);
+              if (data?.error) throw new Error(data.error);
               await supabase.auth.signOut();
               navigate({ to: "/auth" });
             } catch (e) {

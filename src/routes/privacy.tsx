@@ -159,7 +159,7 @@ function PrivacyPage() {
               <li><strong>Access controls:</strong> Access to stored data is limited to authorized Aperio systems and configured backend services needed to operate the app</li>
               <li><strong>Rate limiting:</strong> We implement rate limiting on all API endpoints to prevent unauthorized access and abuse</li>
             </ul>
-            <p>While we implement these safeguards, no method of electronic storage or internet transmission is 100% secure. We cannot guarantee absolute security. If you become aware of a security concern, please contact us immediately at privacy@aperioapp.com.</p>
+            <p>While we implement these safeguards, no method of electronic storage or internet transmission is 100% secure. We cannot guarantee absolute security. If you become aware of a security concern, please contact us immediately at support@aperiobible.app.</p>
           </Section>
 
           <Section title="6. Data Sharing and Disclosure">
@@ -185,13 +185,13 @@ function PrivacyPage() {
 
           <Section title="7. Your Rights and Choices">
             <h3 className="font-semibold mt-4">7.1 Access and Portability</h3>
-            <p>You have the right to request access to the personal information we hold about you. At this time, Aperio does not provide a self-service in-app export screen. To request an export of your account data, please contact us at privacy@aperioapp.com.</p>
+            <p>You have the right to request access to the personal information we hold about you. At this time, Aperio does not provide a self-service in-app export screen. To request an export of your account data, please contact us at support@aperiobible.app.</p>
 
             <h3 className="font-semibold mt-4">7.2 Correction</h3>
-            <p>You can update or correct some of your personal information through the app during onboarding and profile-related flows. If you need help correcting account data that is not currently editable in the app, contact us at privacy@aperioapp.com.</p>
+            <p>You can update or correct some of your personal information through the app during onboarding and profile-related flows. If you need help correcting account data that is not currently editable in the app, contact us at support@aperiobible.app.</p>
 
             <h3 className="font-semibold mt-4">7.3 Deletion</h3>
-            <p>You have the right to request deletion of your account and associated personal data. Aperio does not currently provide an in-app account deletion control. To request deletion, contact us at privacy@aperioapp.com. We will review and process verified deletion requests within a reasonable period, subject to any legal retention obligations.</p>
+            <p>You have the right to delete your account and associated personal data at any time. In the app, go to Profile → Delete account — this permanently removes your profile, prayers, notes, and bookmarks. You may also request deletion by contacting us at support@aperiobible.app. We will review and process verified deletion requests within a reasonable period, subject to any legal retention obligations.</p>
 
             <h3 className="font-semibold mt-4">7.4 Withdrawing Consent</h3>
             <p>Where we process your data based on consent, you may withdraw that consent at any time. Withdrawal of consent does not affect the lawfulness of processing based on consent before withdrawal.</p>
@@ -208,7 +208,7 @@ function PrivacyPage() {
           </Section>
 
           <Section title="9. Children's Privacy">
-            <p>Aperio is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us at privacy@aperioapp.com and we will delete that information promptly.</p>
+            <p>Aperio is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us at support@aperiobible.app and we will delete that information promptly.</p>
             <p>Users between the ages of 13 and 18 may use Aperio with the consent of a parent or guardian. We encourage parents to review this Privacy Policy with their children.</p>
           </Section>
 
@@ -231,8 +231,8 @@ function PrivacyPage() {
             <p>If you have any questions, concerns, or requests regarding this Privacy Policy or the way we handle your personal information, please contact us:</p>
             <div className="not-prose rounded-lg border border-border bg-muted/30 p-4 text-sm">
               <p className="font-semibold">Aperio Privacy Team</p>
-              <p>Email: privacy@aperioapp.com</p>
-              <p>Website: aperioapp.com</p>
+              <p>Email: support@aperiobible.app</p>
+              <p>Website: aperiobible.app</p>
               <p>Mailing Address: Aperio / Katylst Agency, Alpharetta, Georgia, United States</p>
             </div>
             <p>We are committed to responding to all privacy-related inquiries within 30 days.</p>
@@ -242,7 +242,7 @@ function PrivacyPage() {
         <footer className="mt-16 border-t border-border pt-8 text-center text-xs text-muted-foreground">
           <p className="text-base font-serif text-foreground mb-1">APERIO</p>
           <p className="italic mb-2">Where the Word Opens.</p>
-          <p>Powered by Clavis AI · Katylst Agency · aperioapp.com</p>
+          <p>Powered by Clavis AI · Katylst Agency · aperiobible.app</p>
         </footer>
       </div>
     </main>

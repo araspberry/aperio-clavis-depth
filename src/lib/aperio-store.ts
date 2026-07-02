@@ -6,6 +6,8 @@ export type ClavisTone = "scholarly" | "devotional" | "balanced" | "auto";
 export interface UserProfile {
   firstName: string;
   lastName: string;
+  dob?: string;
+  gender?: string;
   city: string;
   state: string;
   country: string;
@@ -95,18 +97,12 @@ function isBrowser() {
   return typeof window !== "undefined";
 }
 
-function isLocalDevHost() {
-  if (!isBrowser()) return false;
-  const host = window.location.hostname;
-  return host === "localhost" || host === "127.0.0.1" || host === "::1";
-}
-
 export function isGuestModeEnabled() {
-  return isLocalDevHost() && isBrowser() && window.localStorage.getItem(DEV_GUEST_KEY) === "1";
+  return isBrowser() && window.localStorage.getItem(DEV_GUEST_KEY) === "1";
 }
 
 export function startGuestMode() {
-  if (!isLocalDevHost() || !isBrowser()) return;
+  if (!isBrowser()) return;
   window.localStorage.setItem(DEV_GUEST_KEY, "1");
 }
 

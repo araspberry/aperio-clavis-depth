@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { isNative } from "@/lib/native";
 import { startNativeOAuth } from "@/lib/native-auth";
+import { signInWithAppleNative } from "@/lib/apple-auth";
+import { Capacitor } from "@capacitor/core";
 import { isGuestModeEnabled, startGuestMode } from "@/lib/aperio-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,11 +32,7 @@ type Step = 0 | 1 | 2;
 function AuthPage() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/auth" });
-  const localGuestReady =
-    typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1" ||
-      window.location.hostname === "::1");
+  const isIOS = isNative() && Capacitor.getPlatform() === "ios";
   const [mode, setMode] = useState<Mode>("signin");
   const [step, setStep] = useState<Step>(0);
   const [direction, setDirection] = useState<1 | -1>(1);
@@ -159,6 +157,32 @@ function AuthPage() {
     }
   };
 
+  const signInWithApple = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      if (isIOS) {
+        // Native Apple ID sheet (Face ID / Touch ID); session lands via signInWithIdToken,
+        // then onAuthStateChange navigates to the post-auth target.
+        await signInWithAppleNative();
+        return;
+      }
+      // Web fallback: standard Supabase OAuth redirect flow.
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "apple",
+        options: { redirectTo: window.location.origin },
+      });
+      if (error) throw error;
+    } catch (err) {
+      if (err instanceof Error && err.name === "AppleSignInCancelled") {
+        setBusy(false);
+        return;
+      }
+      setError(err instanceof Error ? err.message : "Apple sign-in failed.");
+      setBusy(false);
+    }
+  };
+
   const variants = {
     enter: (dir: number) => ({ x: dir > 0 ? 40 : -40, opacity: 0 }),
     center: { x: 0, opacity: 1 },
@@ -242,9 +266,24 @@ function AuthPage() {
                 </div>
 
                 <button
+                  onClick={signInWithApple}
+                  disabled={busy}
+                  className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-5 py-4 text-sm font-medium text-black transition hover:bg-white/90 disabled:opacity-50"
+                >
+                  {busy ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08ZM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25Z" />
+                    </svg>
+                  )}
+                  <span>Continue with Apple</span>
+                </button>
+
+                <button
                   onClick={signInWithGoogle}
                   disabled={busy}
-                  className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/5 px-5 py-4 text-sm text-[var(--cream)] transition hover:border-white/30 hover:bg-white/10 disabled:opacity-50"
+                  className="mt-3 flex w-full items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/5 px-5 py-4 text-sm text-[var(--cream)] transition hover:border-white/30 hover:bg-white/10 disabled:opacity-50"
                 >
                   {busy ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -256,14 +295,15 @@ function AuthPage() {
                   <span>Continue with Google</span>
                 </button>
 
-                {localGuestReady && (
-                  <button
-                    onClick={continueLocally}
-                    className="mt-3 flex w-full items-center justify-center gap-3 rounded-2xl border border-[var(--gold)]/25 bg-[var(--gold)]/10 px-5 py-4 text-sm text-[var(--gold-soft)] transition hover:border-[var(--gold)]/40 hover:bg-[var(--gold)]/15"
-                  >
-                    <span>Continue locally without sync</span>
-                  </button>
-                )}
+                <button
+                  onClick={continueLocally}
+                  className="mt-3 flex w-full items-center justify-center gap-3 rounded-2xl border border-[var(--gold)]/25 bg-[var(--gold)]/10 px-5 py-4 text-sm text-[var(--gold-soft)] transition hover:border-[var(--gold)]/40 hover:bg-[var(--gold)]/15"
+                >
+                  <span>Continue as guest</span>
+                </button>
+                <p className="mt-2 text-center text-[11px] text-[var(--cream)]/40">
+                  Read the Bible without an account. Your notes stay on this device.
+                </p>
               </motion.div>
             )}
 
